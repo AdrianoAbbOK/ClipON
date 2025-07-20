@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -u
 
 # Verificar que se han proporcionado los parámetros necesarios
 if [ "$#" -ne 7 ]; then

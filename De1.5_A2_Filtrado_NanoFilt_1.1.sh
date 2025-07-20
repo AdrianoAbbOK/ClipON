@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -u
 
 # Chequeo si NanoFilt está instalado
 if ! command -v NanoFilt &> /dev/null

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -u
 
 # Uso:
 #   BASE_DIR=/ruta/a/clustered OUTPUT_DIR=/ruta/a/unificado ./De2.5_A3_NGSpecies_Unificar_Clusters.sh
