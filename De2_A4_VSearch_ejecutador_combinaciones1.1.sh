@@ -18,7 +18,7 @@ for combinacion in "${combinaciones[@]}"; do
     echo "Ejecutando con cluster_identity=${cluster_identity}; blast_identity=${blast_identity} y maxaccepts=${maxaccepts}..."
     
     # Ejecutar el script con los parámetros correspondientes
-    ./nuevo2.6.1.sh "$manifest_file" "$prefix" "$dirDB" "$email" "$cluster_identity" "$blast_identity" "$maxaccepts"
+    ./De2_A4__VSearch_Procesonuevo2.6.1.sh "$manifest_file" "$prefix" "$dirDB" "$email" "$cluster_identity" "$blast_identity" "$maxaccepts"
     
     # Verificar si hubo un error
     if [ $? -ne 0 ]; then
