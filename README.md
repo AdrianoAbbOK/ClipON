@@ -27,6 +27,7 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
 - Cutadapt
 - NanoFilt (debe estar instalado antes de ejecutar `De1.5_A2_Filtrado_NanoFilt_1.1.sh`)
 - QIIME2
+- msmtp (utilizado por `De2_A4__VSearch_Procesonuevo2.6.1.sh` para enviar notificaciones por correo)
 
 ## Ejemplos de ejecución
 
@@ -73,7 +74,8 @@ conda activate clipon-prep
 ./De0_A1_Process_Fastq.4_SeqKit.sh
 ```
 
-El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier**.
+El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier** y
+contiene `msmtp` para habilitar las notificaciones por correo.
 
 =======
 ### Clustering con NGSpeciesID
