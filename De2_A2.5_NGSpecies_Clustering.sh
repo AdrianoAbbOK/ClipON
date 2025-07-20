@@ -1,8 +1,18 @@
 #!/bin/bash
 
-# Directorio que contiene los archivos .fastq
-input_dir="/home/adriano_abb/Qiime/V2/Juan/Clust_By_NGSpecies/Archivos_Ejemplo/Test"
-output_dir="/home/adriano_abb/Qiime/V2/Juan/Clust_By_NGSpecies/Archivos_Ejemplo/Test/clustered/" 
+# Uso:
+#   INPUT_DIR=/ruta/a/fastq OUTPUT_DIR=/ruta/a/salida ./De2_A2.5_NGSpecies_Clustering.sh
+#   o: ./De2_A2.5_NGSpecies_Clustering.sh <dir_entrada> <dir_salida>
+
+# Directorio que contiene los archivos .fastq y salida configurables
+input_dir="${INPUT_DIR:-$1}"
+output_dir="${OUTPUT_DIR:-$2}"
+
+if [ -z "$input_dir" ] || [ -z "$output_dir" ]; then
+    echo "Uso: INPUT_DIR=<dir entrada> OUTPUT_DIR=<dir salida> $0"
+    echo "   o: $0 <dir entrada> <dir salida>"
+    exit 1
+fi
 
 # Crear el directorio de salida si no existe
 mkdir -p "$output_dir"

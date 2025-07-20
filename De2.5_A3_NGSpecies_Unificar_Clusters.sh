@@ -1,10 +1,18 @@
 #!/bin/bash
 
-# Directorio base donde están las carpetas
-BASE_DIR="/home/adriano_abb/Qiime/Res_Experim/expCOI/clustered"
+# Uso:
+#   BASE_DIR=/ruta/a/clustered OUTPUT_DIR=/ruta/a/unificado ./De2.5_A3_NGSpecies_Unificar_Clusters.sh
+#   o: ./De2.5_A3_NGSpecies_Unificar_Clusters.sh <dir_base> <dir_salida>
 
-# Directorio de salida donde se guardarán los archivos unificados
-DIR_SALIDA="$BASE_DIR/Consensos_unificado"
+# Directorio base donde están las carpetas y de salida
+BASE_DIR="${BASE_DIR:-$1}"
+DIR_SALIDA="${OUTPUT_DIR:-$2}"
+
+if [ -z "$BASE_DIR" ] || [ -z "$DIR_SALIDA" ]; then
+    echo "Uso: BASE_DIR=<dir base> OUTPUT_DIR=<dir salida> $0"
+    echo "   o: $0 <dir base> <dir salida>"
+    exit 1
+fi
 
 # Crear el directorio de salida si no existe
 mkdir -p "$DIR_SALIDA"

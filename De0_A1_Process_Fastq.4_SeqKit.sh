@@ -7,9 +7,21 @@ then
     exit 1
 fi
 
-# Definir los directorios de entrada y salida
-INPUT_DIR="/home/adriano_abb/Qiime/V2/Juan/Limpieza_Filtrado_DeSecCrudas/Archivos_ejemplo_Mock"
-OUTPUT_DIR="/home/adriano_abb/Qiime/V2/Juan/Limpieza_Filtrado_DeSecCrudas/Archivos_ejemplo_Mock/parsed"
+# Uso:
+#   INPUT_DIR=/ruta/a/fastq OUTPUT_DIR=/ruta/a/salida ./De0_A1_Process_Fastq.4_SeqKit.sh
+#   o bien
+#   ./De0_A1_Process_Fastq.4_SeqKit.sh /ruta/a/fastq /ruta/a/salida
+
+# Directorios de entrada y salida configurables por variables o argumentos
+INPUT_DIR="${INPUT_DIR:-$1}"
+OUTPUT_DIR="${OUTPUT_DIR:-$2}"
+
+# Comprobar que se proporcionaron las rutas
+if [ -z "$INPUT_DIR" ] || [ -z "$OUTPUT_DIR" ]; then
+    echo "Uso: INPUT_DIR=<dir entrada> OUTPUT_DIR=<dir salida> $0"
+    echo "   o: $0 <dir entrada> <dir salida>"
+    exit 1
+fi
 
 # Verificar si los directorios existen
 if [ ! -d "$INPUT_DIR" ]; then

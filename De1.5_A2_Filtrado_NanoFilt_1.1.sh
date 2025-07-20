@@ -20,10 +20,21 @@ else
     echo "NanoFilt ya está instalado. Se procede al Filtrado"
 fi
 
-# Definir los directorios de entrada y salida
-input_dir="/home/adriano_abb/Qiime/V2/Juan/Limpieza_Filtrado_DeSecCrudas/Archivos_ejemplo_Mock/parsed/"  # Cambia esta ruta según tu ubicación de entrada
-output_dir="/home/adriano_abb/Qiime/V2/Juan/Limpieza_Filtrado_DeSecCrudas/Archivos_ejemplo_Mock/parsed/filtered2/"
-log_file="/home/adriano_abb/Qiime/V2/Juan/Limpieza_Filtrado_DeSecCrudas/Archivos_ejemplo_Mock/parsed/filtered2/filtering_process.log"
+# Uso:
+#   INPUT_DIR=dir_de_entrada OUTPUT_DIR=dir_de_salida LOG_FILE=registro.log ./De1.5_A2_Filtrado_NanoFilt_1.1.sh
+#   o bien
+#   ./De1.5_A2_Filtrado_NanoFilt_1.1.sh <dir_entrada> <dir_salida> <archivo_log>
+
+# Directorios y archivo de log configurables
+input_dir="${INPUT_DIR:-$1}"
+output_dir="${OUTPUT_DIR:-$2}"
+log_file="${LOG_FILE:-$3}"
+
+if [ -z "$input_dir" ] || [ -z "$output_dir" ] || [ -z "$log_file" ]; then
+    echo "Uso: INPUT_DIR=<dir entrada> OUTPUT_DIR=<dir salida> LOG_FILE=<archivo log> $0"
+    echo "   o: $0 <dir entrada> <dir salida> <archivo log>"
+    exit 1
+fi
 
 # Crear el directorio de salida si no existe
 mkdir -p "$output_dir"
