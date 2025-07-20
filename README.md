@@ -95,3 +95,7 @@ El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier**.
 ```bash
 ./run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 ```
+
+### Formato del Importing Manifest
+Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. El archivo debe tener las columnas:
+`sample-id`, `absolute-filepath` y `direction`.
