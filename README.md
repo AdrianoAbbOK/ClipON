@@ -90,6 +90,13 @@ El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier**.
 ```bash
 ./De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
 ```
+Para ejecutar todas las combinaciones de parámetros de forma automática puede usarse
+`De2_A4_VSearch_ejecutador_combinaciones1.1.sh`. Los valores de manifiesto, prefijo,
+base de datos y correo pueden pasarse como argumentos o mediante variables de entorno:
+```bash
+MANIFEST_FILE=manifest.tsv PREFIX=prueba DIRDB=NCBI_DB EMAIL=me@example.com \
+./De2_A4_VSearch_ejecutador_combinaciones1.1.sh
+```
 
 ### Ejecución completa
 ```bash
