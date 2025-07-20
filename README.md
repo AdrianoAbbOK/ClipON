@@ -25,7 +25,7 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
 
 - SeqKit
 - Cutadapt
-- NanoFilt
+- NanoFilt (debe estar instalado antes de ejecutar `De1.5_A2_Filtrado_NanoFilt_1.1.sh`)
 - QIIME2
 
 ## Ejemplos de ejecución
