@@ -1,0 +1,11 @@
+name: clipon-qiime
+channels:
+  - qiime2/label/r2024.10
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10.14
+  - qiime2=2024.10.1
+  - vsearch=2.22.1
+  - blast=2.16.0
+  - pigz=2.8

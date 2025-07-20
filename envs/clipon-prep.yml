@@ -1,0 +1,10 @@
+name: clipon-prep
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10.14
+  - cutadapt=4.9
+  - nanofilt=2.8.0
+  - seqkit=2.9.0
+  - pigz=2.8
