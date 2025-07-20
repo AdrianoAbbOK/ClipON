@@ -9,3 +9,4 @@ dependencies:
   - vsearch=2.22.1
   - blast=2.16.0
   - pigz=2.8
+  - msmtp
