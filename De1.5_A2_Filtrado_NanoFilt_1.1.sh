@@ -1,23 +1,11 @@
 #!/bin/bash
 
 # Chequeo si NanoFilt está instalado
-if ! command -v NanoFilt &> /dev/null
-then
-    echo "NanoFilt no está instalado. Instalando..."
-    # Intentamos instalarlo con conda
-    conda install -c bioconda nanofilt -y
-    # O si prefieres usar pip
-    # pip install NanoFilt
-    # Verifica si la instalación fue exitosa
-    if ! command -v NanoFilt &> /dev/null
-    then
-        echo "No se pudo instalar NanoFilt. Por favor, instálalo manualmente." >&2
-        exit 1
-    else
-        echo "NanoFilt instalado correctamente."
-    fi
+if ! command -v NanoFilt >/dev/null; then
+    echo "Error: NanoFilt no encontrado. Instálalo antes de ejecutar este script." >&2
+    exit 1
 else
-    echo "NanoFilt ya está instalado. Se procede al Filtrado"
+    echo "NanoFilt encontrado. Se procede al filtrado"
 fi
 
 # Uso:
@@ -43,14 +31,14 @@ mkdir -p "$output_dir"
 echo "Proceso de filtrado comenzado a las $(date)" > "$log_file"
 
 # Filtrar todos los archivos FASTQ en la carpeta de entrada
-for file in "$input_dir"*.fastq; do
+for file in "$input_dir"/*.fastq; do
     # Obtener el nombre del archivo sin la extensión
     base_name="$(basename "$file" .fastq)"
-    
+
     # Ejecutar NanoFilt y guardar en formato FASTQ
     echo "Filtrando $file..." >> "$log_file"
     cat "$file" | NanoFilt -l 650 --maxlength 750 -q 10 > "$output_dir/${base_name}_Filt650_750_Q10.fastq" 2>> "$log_file"
-    
+
     # Verificar si el proceso fue exitoso
     if [ $? -eq 0 ]; then
         echo "Filtrado completado para $file" >> "$log_file"
