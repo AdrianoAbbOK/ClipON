@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -u
 
 # Verificar si seqkit está instalado
 if ! command -v seqkit &> /dev/null

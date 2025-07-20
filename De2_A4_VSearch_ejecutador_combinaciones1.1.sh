@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -u
 
 # Parámetros fijos
 manifest_file="SingleFastaPrueba_Filt.tsv"

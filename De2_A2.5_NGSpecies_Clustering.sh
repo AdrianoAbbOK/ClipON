@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -u
 
 # Uso:
 #   INPUT_DIR=/ruta/a/fastq OUTPUT_DIR=/ruta/a/salida ./De2_A2.5_NGSpecies_Clustering.sh

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -u
 
 # Uso:
 #   INPUT_DIR=/ruta/a/fastq OUTPUT_DIR=/ruta/a/salida ./De1_A1.5_Trim_Fastq.sh
