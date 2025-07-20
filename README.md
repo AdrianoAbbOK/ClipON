@@ -45,6 +45,37 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
 ./De1.5_A2_Filtrado_NanoFilt_1.1.sh <dir_entrada> <dir_salida> <log_file>
 ```
 
+### codex/crear-archivos-environment.yml-para-entornos
+## Entornos Conda
+
+El repositorio incluye tres archivos de entorno en `envs/` para mantener
+pequeñas dependencias por etapa.
+
+```text
+envs/clipon-prep.yml   # QC y recorte
+envs/clipon-qiime.yml  # clustering con VSEARCH y clasificación
+envs/clipon-ngs.yml    # pipeline con NGSpeciesID
+```
+
+Cree cada entorno con `mamba` (o `conda` si no utiliza mamba):
+
+```bash
+mamba env create -f envs/clipon-prep.yml
+mamba env create -f envs/clipon-qiime.yml
+mamba env create -f envs/clipon-ngs.yml
+```
+
+Active el entorno correspondiente antes de ejecutar los scripts. Por ejemplo,
+para los pasos de preparación:
+
+```bash
+conda activate clipon-prep
+./De0_A1_Process_Fastq.4_SeqKit.sh
+```
+
+El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier**.
+
+=======
 ### Clustering con NGSpeciesID
 ```bash
 ./De2_A2.5_NGSpecies_Clustering.sh <dir_entrada> <dir_salida>
