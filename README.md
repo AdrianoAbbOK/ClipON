@@ -86,6 +86,19 @@ El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier**.
 ./De2.5_A3_NGSpecies_Unificar_Clusters.sh <dir_base> <dir_salida>
 ```
 
+### Generar manifest automáticamente
+El archivo `manifest.csv` requerido por QIIME2 puede crearse con:
+
+```bash
+./scripts/generate_manifest.sh --filtered 3_filtered > manifest.csv
+```
+
+o bien utilizando las salidas de NGSpeciesID:
+
+```bash
+./scripts/generate_manifest.sh --ngspecies 4_clustered > manifest.csv
+```
+
 ### Clasificación con QIIME2
 ```bash
 ./De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
