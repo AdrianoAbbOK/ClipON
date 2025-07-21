@@ -68,6 +68,9 @@ conda activate clipon-qiime
     "$BLAST_DB" \
     "$TAXONOMY_DB"
 
-echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
+# Paso 7: exportar resultados de clasificación
+"$script_dir/De3_A5_Export_Classification.sh" "$UNIFIED_DIR"
+
+echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"
