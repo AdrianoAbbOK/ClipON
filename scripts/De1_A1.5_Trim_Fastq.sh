@@ -2,6 +2,14 @@
 set -e
 set -u
 
+# Chequeo si cutadapt está instalado
+if ! command -v cutadapt >/dev/null; then
+    echo "Error: cutadapt no encontrado. Instálalo antes de ejecutar este script." >&2
+    exit 1
+else
+    echo "cutadapt encontrado. Se procede al recorte"
+fi
+
 # Uso:
 #   INPUT_DIR=/ruta/a/fastq OUTPUT_DIR=/ruta/a/salida ./De1_A1.5_Trim_Fastq.sh
 #   o: ./De1_A1.5_Trim_Fastq.sh <dir_entrada> <dir_salida>

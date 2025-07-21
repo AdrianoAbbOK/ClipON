@@ -5,6 +5,14 @@
 # El directorio de trabajo contendrá subcarpetas para cada etapa
 
 set -e
+set -u
+
+# Determinar la ruta del directorio donde está este script para poder invocar
+# los demás scripts sin importar desde dónde se ejecute
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Inicializar conda y activar entornos según la etapa
+source "$(conda info --base)/etc/profile.d/conda.sh"
 
 if [ "$#" -ne 2 ]; then
     echo "Uso: $0 <dir_fastq_entrada> <dir_trabajo>"
@@ -30,7 +38,8 @@ LOG_FILE="$FILTER_DIR/nanofilt.log"
 mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR"
 
 # Ejecutar paso 1: limpieza con SeqKit
-INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" ./scripts/De0_A1_Process_Fastq.4_SeqKit.sh
+conda activate clipon-prep
+INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" "$script_dir/De0_A1_Process_Fastq.4_SeqKit.sh"
 
 # Paso 2: recorte de cebadores (opcional)
 if [ "$SKIP_TRIM" -eq 1 ]; then
@@ -39,14 +48,18 @@ if [ "$SKIP_TRIM" -eq 1 ]; then
 else
     INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" ./scripts/De1_A1.5_Trim_Fastq.sh
 fi
+=======
+# Paso 2: recorte de cebadores
+INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" "$script_dir/De1_A1.5_Trim_Fastq.sh"
 
 # Paso 3: filtrado por calidad y longitud
-INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" ./scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
+INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" "$script_dir/De1.5_A2_Filtrado_NanoFilt_1.1.sh"
+conda activate clipon-ngs
 
 # Paso 4: clusterizado con NGSpeciesID
-INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" ./scripts/De2_A2.5_NGSpecies_Clustering.sh
+INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" "$script_dir/De2_A2.5_NGSpecies_Clustering.sh"
 
 # Paso 5: unificación de clusters
-BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" ./scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
+BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" "$script_dir/De2.5_A3_NGSpecies_Unificar_Clusters.sh"
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"

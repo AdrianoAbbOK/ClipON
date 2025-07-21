@@ -46,7 +46,6 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
 ./scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh <dir_entrada> <dir_salida> <log_file>
 ```
 
-### codex/crear-archivos-environment.yml-para-entornos
 ## Entornos Conda
 
 El repositorio incluye tres archivos de entorno en `envs/` para mantener
@@ -66,18 +65,13 @@ mamba env create -f envs/clipon-qiime.yml
 mamba env create -f envs/clipon-ngs.yml
 ```
 
-Active el entorno correspondiente antes de ejecutar los scripts. Por ejemplo,
-para los pasos de preparación:
+Active cada entorno solo la primera vez para instalarlo.  El script
+`run_clipon_pipeline.sh` se encarga de activar el entorno adecuado en cada
+etapa, por lo que puede ejecutarse sin activar nada manualmente.  Si desea
+ejecutar las etapas por separado, active el entorno correspondiente de forma
+manual.  El entorno `clipon-qiime` también se reutiliza para el módulo
+**Classifier** y contiene `msmtp` para habilitar las notificaciones por correo.
 
-```bash
-conda activate clipon-prep
-./scripts/De0_A1_Process_Fastq.4_SeqKit.sh
-```
-
-El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier** y
-contiene `msmtp` para habilitar las notificaciones por correo.
-
-=======
 ### Clustering con NGSpeciesID
 ```bash
 ./scripts/De2_A2.5_NGSpecies_Clustering.sh <dir_entrada> <dir_salida>
@@ -114,6 +108,9 @@ MANIFEST_FILE=manifest.tsv PREFIX=prueba DIRDB=NCBI_DB EMAIL=me@example.com \
 ```
 
 ### Ejecución completa
+El wrapper `run_clipon_pipeline.sh` puede ejecutarse desde cualquier
+directorio.  Activará los entornos Conda necesarios automáticamente.
+
 ```bash
 ./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 ```
