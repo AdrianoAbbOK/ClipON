@@ -70,7 +70,7 @@ conda activate clipon-qiime
     echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
     
 # Paso 7: exportar resultados de clasificación
-"$script_dir/De3_A5_Export_Classification.sh" "$UNIFIED_DIR"
+"$script_dir/De3_A4_Export_Classification.sh" "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
 
