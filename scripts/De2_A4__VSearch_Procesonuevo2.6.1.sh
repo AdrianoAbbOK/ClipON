@@ -16,7 +16,7 @@ cluster_identity=$5
 blast_identity=$6
 maxaccepts=$7
 
-# Controla el envío de notificaciones por correo (1 por defecto)
+# Controla el envío de notificaciones por correo; establezca en 0 para desactivar
 EMAIL_NOTIFY="${EMAIL_NOTIFY:-1}"
 
 # Parámetros personalizables fijos

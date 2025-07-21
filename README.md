@@ -32,7 +32,10 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
 - NanoFilt (debe estar instalado antes de ejecutar `scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh`)
 - QIIME2
 - msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para enviar notificaciones por correo)
-- La variable de entorno `EMAIL_NOTIFY` controla si se envían estas notificaciones (1 por defecto)
+- La variable de entorno `EMAIL_NOTIFY` controla si se envían estas notificaciones (1 por defecto). Establézcala en `0` para desactivarlas, por ejemplo:
+  ```bash
+  EMAIL_NOTIFY=0 ./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_id> <blast_id> <maxaccepts>
+  ```
 
 ## Ejemplos de ejecución
 
