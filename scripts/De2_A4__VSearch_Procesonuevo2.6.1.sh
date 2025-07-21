@@ -16,6 +16,9 @@ cluster_identity=$5
 blast_identity=$6
 maxaccepts=$7
 
+# Controla el envío de notificaciones por correo (1 por defecto)
+EMAIL_NOTIFY="${EMAIL_NOTIFY:-1}"
+
 # Parámetros personalizables fijos
 blast_consensus="0.51"
 blast_coverage="0.8"
@@ -163,7 +166,9 @@ classificar_secuencias() {
 
     SUBJECT="Notificación - Clasificación completada"
     BODY="Clasificación completada.\nFecha y Hora: $(date '+%Y-%m-%d %H:%M:%S')"
-    echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
+    if [ "$EMAIL_NOTIFY" = "1" ]; then
+        echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
+    fi
 }
 
 # Extraer datos
@@ -222,7 +227,9 @@ exportar_y_procesar_tablas() {
 # Envío de notificación al inicio del proceso
 SUBJECT="Notificación - Inicio del proceso"
 BODY="El proceso ha comenzado.\nFecha y Hora: $(date '+%Y-%m-%d %H:%M:%S')"
-echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
+if [ "$EMAIL_NOTIFY" = "1" ]; then
+    echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
+fi
 
 # Ejecución de funciones
 process_manifest
@@ -232,4 +239,6 @@ extraer_datos
 # Notificación de finalización
 SUBJECT="Notificación - Proceso completo"
 BODY="El proceso ha terminado.\nFecha y Hora: $(date '+%Y-%m-%d %H:%M:%S')"
-echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
+if [ "$EMAIL_NOTIFY" = "1" ]; then
+    echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
+fi
