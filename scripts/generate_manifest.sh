@@ -4,16 +4,44 @@ set -u
 set -o pipefail
 
 usage() {
-    echo "Usage: $0 (--filtered DIR | --ngspecies DIR)" >&2
+    cat >&2 <<'EOF'
+Usage: $0 (--filtered DIR | --unified DIR | --workdir DIR STEP)
+
+Generate a QIIME2 manifest from the ClipON pipeline outputs.
+
+  --filtered DIR      Directory containing filtered FASTQ files.
+  --unified DIR       Directory produced by the unification step.
+  --workdir DIR STEP  Use DIR/3_filtered or DIR/5_unified depending on STEP
+                      (filtered|unified).
+EOF
     exit 1
 }
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -lt 2 ]; then
     usage
 fi
 
 mode="$1"
 input_dir="$2"
+
+if [ "$mode" = "--workdir" ]; then
+    if [ "$#" -ne 3 ]; then
+        usage
+    fi
+    case "$3" in
+        filtered)
+            mode="--filtered"
+            input_dir="$input_dir/3_filtered"
+            ;;
+        unified)
+            mode="--unified"
+            input_dir="$input_dir/5_unified"
+            ;;
+        *)
+            usage
+            ;;
+    esac
+fi
 
 if [ ! -d "$input_dir" ]; then
     echo "Directory not found: $input_dir" >&2
@@ -35,24 +63,14 @@ case "$mode" in
             echo "${sample},${abs},forward"
         done
         ;;
-    --ngspecies)
-        for d in "$input_dir"/*; do
-            [ -d "$d" ] || continue
-            sample=$(basename "$d")
-            file=""
-            if [ -f "$d/consensus.fastq" ]; then
-                file="$d/consensus.fastq"
-            elif [ -f "$d/consensus.fasta" ]; then
-                file="$d/consensus.fasta"
-            else
-                candidate=$(find "$d" -maxdepth 1 -type f \( -name '*.fastq' -o -name '*.fasta' -o -name '*.fa' \) | head -n 1)
-                if [ -n "$candidate" ]; then
-                    file="$candidate"
-                else
-                    continue
-                fi
-            fi
-            abs=$(readlink -f "$file")
+    --unified)
+        shopt -s nullglob
+        for f in "$input_dir"/consensos_*.fasta; do
+            [ -f "$f" ] || continue
+            base=$(basename "$f")
+            sample=${base#consensos_}
+            sample=${sample%.fasta}
+            abs=$(readlink -f "$f")
             echo "${sample},${abs},forward"
         done
         ;;
