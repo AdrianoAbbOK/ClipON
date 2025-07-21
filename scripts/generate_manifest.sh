@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 set -u
+set -o pipefail
 
 usage() {
     echo "Usage: $0 (--filtered DIR | --ngspecies DIR)" >&2

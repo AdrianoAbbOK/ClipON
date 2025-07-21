@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 set -u
+set -o pipefail
 
 # Verificar que se han proporcionado los parámetros necesarios
 if [ "$#" -ne 7 ]; then

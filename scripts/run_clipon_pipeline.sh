@@ -6,6 +6,7 @@
 
 set -e
 set -u
+set -o pipefail
 
 # Determinar la ruta del directorio donde está este script para poder invocar
 # los demás scripts sin importar desde dónde se ejecute

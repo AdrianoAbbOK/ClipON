@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 set -u
+set -o pipefail
 
 # Clasifica consensos con QIIME2 empleando el clasificador BLAST
 # Uso:
