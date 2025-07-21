@@ -46,7 +46,6 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
 ./scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh <dir_entrada> <dir_salida> <log_file>
 ```
 
-### codex/crear-archivos-environment.yml-para-entornos
 ## Entornos Conda
 
 El repositorio incluye tres archivos de entorno en `envs/` para mantener
@@ -73,7 +72,6 @@ ejecutar las etapas por separado, active el entorno correspondiente de forma
 manual.  El entorno `clipon-qiime` también se reutiliza para el módulo
 **Classifier** y contiene `msmtp` para habilitar las notificaciones por correo.
 
-=======
 ### Clustering con NGSpeciesID
 ```bash
 ./scripts/De2_A2.5_NGSpecies_Clustering.sh <dir_entrada> <dir_salida>
