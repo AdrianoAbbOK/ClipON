@@ -22,6 +22,7 @@ El directorio `<dir_trabajo>/5_unified` contendrá los archivos de clasificació
 `taxonomy.qza` y `search_results.qza`, junto con su versión exportada en
 `5_unified/MaxAc_5`. Defina las variables de entorno `BLAST_DB` y `TAXONOMY_DB`
 apuntando a las bases de datos en formato `.qza` para habilitar esta etapa.
+Puede ajustar el número de hilos de VSEARCH definiendo `THREADS` (valor por defecto 19).
 
 Esto creará subdirectorios dentro de `<dir_trabajo>` para cada etapa.
 Las rutas de entrada y salida también pueden configurarse manualmente al invocar cada script por separado.
@@ -101,7 +102,7 @@ o bien utilizando las salidas de NGSpeciesID:
 
 ### Clasificación con QIIME2
 ```bash
-./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
+THREADS=32 ./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
 ```
 Para ejecutar todas las combinaciones de parámetros de forma automática puede usarse
 `scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh`. Los valores de manifiesto, prefijo,

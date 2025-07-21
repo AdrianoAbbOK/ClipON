@@ -19,6 +19,8 @@ maxaccepts=$7
 # Parámetros personalizables fijos
 blast_consensus="0.51"
 blast_coverage="0.8"
+# Número de hilos a utilizar (opcional)
+THREADS="${THREADS:-19}"
 
 
 # Directorio general
@@ -117,7 +119,7 @@ process_manifest() {
             --p-perc-identity $cluster_identity \
             --o-clustered-table "$artifacts_dir/table_clust_${prefix}.qza" \
             --o-clustered-sequences "$artifacts_dir/rep-seqs_${prefix}.qza" \
-            --p-threads 19; then
+            --p-threads "$THREADS"; then
             handle_error "Falló el clustering de novo."
         fi
     fi
