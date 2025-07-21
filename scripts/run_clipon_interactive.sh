@@ -44,18 +44,21 @@ for env in "${REQUIRED_ENVS[@]}"; do
     echo
 done
 
-read -rp "Ingrese el directorio que contiene los archivos FASTQ: " INPUT_DIR
-if [ ! -d "$INPUT_DIR" ]; then
-    echo "El directorio '$INPUT_DIR' no existe o no es accesible."
-    exit 1
-fi
-shopt -s nullglob
-fastqs=("$INPUT_DIR"/*.fastq "$INPUT_DIR"/*.fq)
-shopt -u nullglob
-if [ ${#fastqs[@]} -eq 0 ]; then
-    echo "No se encontraron archivos FASTQ en '$INPUT_DIR'. Puede que no sea un directorio válido."
-    exit 1
-fi
+while true; do
+    read -rp "Ingrese el directorio que contiene los archivos FASTQ: " INPUT_DIR
+    if [ ! -d "$INPUT_DIR" ]; then
+        echo "El directorio '$INPUT_DIR' no existe o no es accesible. Intente nuevamente."
+        continue
+    fi
+    shopt -s nullglob
+    fastqs=("$INPUT_DIR"/*.fastq "$INPUT_DIR"/*.fq)
+    shopt -u nullglob
+    if [ ${#fastqs[@]} -eq 0 ]; then
+        echo "No se encontraron archivos FASTQ en '$INPUT_DIR'. Intente nuevamente."
+        continue
+    fi
+    break
+done
 
 read -rp "Ingrese el directorio de trabajo donde se guardarán los resultados: " WORK_DIR
 mkdir -p "$WORK_DIR"
