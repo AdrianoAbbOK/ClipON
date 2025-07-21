@@ -35,8 +35,6 @@ if ! command -v qiime >/dev/null; then
 fi
 
 mkdir -p "$output_dir"
-export_dir="$output_dir/MaxAc_5"
-mkdir -p "$export_dir"
 
 # Activar entorno por si el script se ejecuta de forma independiente
 if command -v conda >/dev/null; then
@@ -62,12 +60,4 @@ qiime feature-classifier classify-consensus-blast \
     --o-classification "$output_dir/taxonomy.qza" \
     --o-search-results "$output_dir/search_results.qza"
 
-qiime tools export \
-        --input-path "$output_dir/taxonomy.qza" \
-        --output-path "$export_dir"
-
-qiime tools export \
-        --input-path "$output_dir/search_results.qza" \
-        --output-path "$export_dir"
-
-echo "Clasificación completada. Resultados en: $export_dir"
+echo "Clasificación completada. Archivos .qza disponibles en: $output_dir"
