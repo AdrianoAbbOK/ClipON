@@ -1,6 +1,23 @@
 #!/bin/bash
+
 set -e
 set -u
+
+# Comprobar que las dependencias necesarias están instaladas
+if ! command -v qiime >/dev/null 2>&1; then
+    echo "Error: el comando 'qiime' no está disponible. Instálelo antes de ejecutar este script." >&2
+    exit 1
+fi
+
+if ! command -v biom >/dev/null 2>&1; then
+    echo "Error: el comando 'biom' no está disponible. Instálelo antes de ejecutar este script." >&2
+    exit 1
+fi
+
+if ! command -v msmtp >/dev/null 2>&1; then
+    echo "Error: el comando 'msmtp' no está disponible. Instálelo antes de ejecutar este script." >&2
+    exit 1
+fi
 
 # Verificar que se han proporcionado los parámetros necesarios
 if [ "$#" -ne 7 ]; then
