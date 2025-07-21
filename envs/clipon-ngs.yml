@@ -7,6 +7,7 @@ dependencies:
   - minimap2=2.30
   - medaka=2.0.1
   - racon=1.5.0
+  - spoa=4.*
   - samtools=1.22
   - mappy=2.30
   - pyabpoa=1.5.4
