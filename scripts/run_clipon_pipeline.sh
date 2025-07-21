@@ -61,13 +61,22 @@ INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" "$script_dir/De2_A2.5_NGSpecie
 BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" "$script_dir/De2.5_A3_NGSpecies_Unificar_Clusters.sh"
 
 # Paso 6: clasificación con QIIME2
-conda activate clipon-qiime
-"$script_dir/De3_A4_Classify_NGS.sh" \
-    "$UNIFIED_DIR/consensos_todos.fasta" \
-    "$UNIFIED_DIR" \
-    "$BLAST_DB" \
-    "$TAXONOMY_DB"
-
-echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
+if [[ -z "${BLAST_DB:-}" || -z "${TAXONOMY_DB:-}" ]]; then
+    echo "Variables BLAST_DB y/o TAXONOMY_DB no definidas. Omitiendo clasificación." >&2
+else
+    if [[ ! -f "$BLAST_DB" ]]; then
+        echo "No se encontró BLAST_DB: $BLAST_DB. Omitiendo clasificación." >&2
+    elif [[ ! -f "$TAXONOMY_DB" ]]; then
+        echo "No se encontró TAXONOMY_DB: $TAXONOMY_DB. Omitiendo clasificación." >&2
+    else
+        conda activate clipon-qiime
+        "$script_dir/De3_A4_Classify_NGS.sh" \
+            "$UNIFIED_DIR/consensos_todos.fasta" \
+            "$UNIFIED_DIR" \
+            "$BLAST_DB" \
+            "$TAXONOMY_DB"
+        echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
+    fi
+fi
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"

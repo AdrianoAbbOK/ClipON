@@ -19,6 +19,16 @@ if [[ -z "$input_fasta" || -z "$output_dir" || -z "$blast_db" || -z "$taxonomy_d
     exit 1
 fi
 
+if [[ ! -f "$blast_db" ]]; then
+    echo "El archivo BLAST_DB no existe: $blast_db" >&2
+    exit 1
+fi
+
+if [[ ! -f "$taxonomy_db" ]]; then
+    echo "El archivo TAXONOMY_DB no existe: $taxonomy_db" >&2
+    exit 1
+fi
+
 if ! command -v qiime >/dev/null; then
     echo "No se encontró 'qiime' en el PATH." >&2
     exit 1
