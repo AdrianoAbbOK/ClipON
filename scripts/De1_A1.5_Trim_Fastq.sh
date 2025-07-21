@@ -28,8 +28,8 @@ fi
 mkdir -p "$OUTPUT_DIR"
 
 # Valores de recorte configurables
-TRIM_FRONT="${TRIM_FRONT:-30}"
-TRIM_BACK="${TRIM_BACK:-30}"
+TRIM_FRONT="${TRIM_FRONT:}"
+TRIM_BACK="${TRIM_BACK:}"
 
 # RECORRER ARCHIVOS FASTQ EN EL DIRECTORIO DE ENTRADA
 for file in "$INPUT_DIR"/*.fastq; do
