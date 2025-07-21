@@ -48,9 +48,6 @@ if [ "$SKIP_TRIM" -eq 1 ]; then
 else
     INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" ./scripts/De1_A1.5_Trim_Fastq.sh
 fi
-=======
-# Paso 2: recorte de cebadores
-INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" "$script_dir/De1_A1.5_Trim_Fastq.sh"
 
 # Paso 3: filtrado por calidad y longitud
 INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" "$script_dir/De1.5_A2_Filtrado_NanoFilt_1.1.sh"
@@ -61,5 +58,15 @@ INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" "$script_dir/De2_A2.5_NGSpecie
 
 # Paso 5: unificación de clusters
 BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" "$script_dir/De2.5_A3_NGSpecies_Unificar_Clusters.sh"
+
+# Paso 6: clasificación con QIIME2
+conda activate clipon-qiime
+"$script_dir/De3_A4_Classify_NGS.sh" \
+    "$UNIFIED_DIR/consensos_todos.fasta" \
+    "$UNIFIED_DIR" \
+    "$BLAST_DB" \
+    "$TAXONOMY_DB"
+
+echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"
