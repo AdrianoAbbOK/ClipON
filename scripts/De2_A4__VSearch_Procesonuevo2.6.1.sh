@@ -172,7 +172,7 @@ process_manifest() {
 }
 
 # Clasificar secuencias con BLAST
-classificar_secuencias() {
+clasificar_secuencias() {
     echo "Clasificando secuencias con BLAST..."
     local start_time=$(date +%s)
 
@@ -260,5 +260,5 @@ echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
 
 # Ejecución de funciones
 process_manifest
-classificar_secuencias
+clasificar_secuencias
 extraer_datos
