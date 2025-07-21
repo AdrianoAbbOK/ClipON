@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 set -u
+set -o pipefail
 
 # Parámetros pasados por variables de entorno o argumentos
 manifest_file="${MANIFEST_FILE:-${1-}}"

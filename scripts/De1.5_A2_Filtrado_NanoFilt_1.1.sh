@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 set -u
+set -o pipefail
 
 # Chequeo si NanoFilt está instalado
 if ! command -v NanoFilt >/dev/null; then
