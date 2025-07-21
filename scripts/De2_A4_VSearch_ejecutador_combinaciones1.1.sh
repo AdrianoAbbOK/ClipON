@@ -19,6 +19,8 @@ fi
 combinaciones=("0.98 0.5 5")
 
 # Recorrer las combinaciones y ejecutar el script con cada par de valores
+script_dir="$(dirname "$0")"
+
 for combinacion in "${combinaciones[@]}"; do
     cluster_identity=$(echo $combinacion | cut -d ' ' -f 1)
     blast_identity=$(echo $combinacion | cut -d ' ' -f 2)
@@ -27,7 +29,7 @@ for combinacion in "${combinaciones[@]}"; do
     echo "Ejecutando con cluster_identity=${cluster_identity}; blast_identity=${blast_identity} y maxaccepts=${maxaccepts}..."
     
     # Ejecutar el script con los parámetros correspondientes
-    ./De2_A4__VSearch_Procesonuevo2.6.1.sh "$manifest_file" "$prefix" "$dirDB" "$email" "$cluster_identity" "$blast_identity" "$maxaccepts"
+    "$script_dir/De2_A4__VSearch_Procesonuevo2.6.1.sh" "$manifest_file" "$prefix" "$dirDB" "$email" "$cluster_identity" "$blast_identity" "$maxaccepts"
     
     # Verificar si hubo un error
     if [ $? -ne 0 ]; then
