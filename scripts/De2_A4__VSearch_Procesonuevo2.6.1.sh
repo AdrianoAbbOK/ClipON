@@ -16,6 +16,22 @@ cluster_identity=$5
 blast_identity=$6
 maxaccepts=$7
 
+# Funcion que se ejecuta al finalizar el script
+on_exit() {
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
+        SUBJECT="Notificación - Proceso completo"
+        BODY="El proceso ha terminado.\nFecha y Hora: $(date '+%Y-%m-%d %H:%M:%S')"
+    else
+        SUBJECT="Notificación - Proceso fallido"
+        BODY="El proceso terminó con errores (Código $exit_code).\nFecha y Hora: $(date '+%Y-%m-%d %H:%M:%S')"
+    fi
+    echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
+}
+
+# Registrar la función on_exit para ejecutarse al salir
+trap on_exit EXIT
+
 # Parámetros personalizables fijos
 blast_consensus="0.51"
 blast_coverage="0.8"
@@ -228,8 +244,3 @@ echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
 process_manifest
 classificar_secuencias
 extraer_datos
-
-# Notificación de finalización
-SUBJECT="Notificación - Proceso completo"
-BODY="El proceso ha terminado.\nFecha y Hora: $(date '+%Y-%m-%d %H:%M:%S')"
-echo -e "Subject: $SUBJECT\n\n$BODY" | msmtp -a gmail "$email"
