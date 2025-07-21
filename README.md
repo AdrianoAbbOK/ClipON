@@ -8,7 +8,7 @@
 3. **Filtrado de calidad y longitud** – `NanoFilt` descarta lecturas cortas o de baja calidad.
 4. **Clustering** – `NGSpeciesID` agrupa secuencias y genera consensos.
 5. **Unificación de clusters** – se combinan los consensos de distintos experimentos.
-6. **Clasificación opcional** – el script de VSearch/QIIME2 permite asignar taxonomía.
+6. **Clasificación opcional** – el script `scripts/De3_A4_Classify_NGS.sh` usa `qiime feature-classifier classify-consensus-blast` para asignar taxonomía a los consensos unificados.
 
 
 ## Uso rápido
@@ -18,6 +18,10 @@ Ejecuta todo el flujo con:
 ```bash
 ./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 ```
+El directorio `<dir_trabajo>/5_unified` contendrá los archivos de clasificación
+`taxonomy.qza` y `search_results.qza`, junto con su versión exportada en
+`5_unified/MaxAc_5`. Defina las variables de entorno `BLAST_DB` y `TAXONOMY_DB`
+apuntando a las bases de datos en formato `.qza` para habilitar esta etapa.
 
 Esto creará subdirectorios dentro de `<dir_trabajo>` para cada etapa.
 Las rutas de entrada y salida también pueden configurarse manualmente al invocar cada script por separado.
