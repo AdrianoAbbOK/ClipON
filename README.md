@@ -103,6 +103,7 @@ o bien utilizando las salidas de NGSpeciesID:
 ```bash
 ./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
 ```
+La clasificación se realiza dentro de la función `clasificar_secuencias` de dicho script.
 Para ejecutar todas las combinaciones de parámetros de forma automática puede usarse
 `scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh`. Los valores de manifiesto, prefijo,
 base de datos y correo pueden pasarse como argumentos o mediante variables de entorno:
