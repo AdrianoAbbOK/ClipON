@@ -19,10 +19,14 @@ fi
 # CREAR CARPETA DE SALIDA SI NO EXISTE
 mkdir -p "$OUTPUT_DIR"
 
+# Valores de recorte configurables
+TRIM_FRONT="${TRIM_FRONT:-30}"
+TRIM_BACK="${TRIM_BACK:-30}"
+
 # RECORRER ARCHIVOS FASTQ EN EL DIRECTORIO DE ENTRADA
 for file in "$INPUT_DIR"/*.fastq; do
     filename=$(basename "$file")
-    cutadapt -u 30 -u -30 -o "$OUTPUT_DIR/${filename%.fastq}_trimmed.fastq" "$file"
+    cutadapt -u "$TRIM_FRONT" -u "-$TRIM_BACK" -o "$OUTPUT_DIR/${filename%.fastq}_trimmed.fastq" "$file"
 done
 
 # INFORMAR FINALIZACIÓN

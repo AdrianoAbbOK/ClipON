@@ -14,6 +14,11 @@ fi
 INPUT_DIR="$1"
 WORK_DIR="$2"
 
+# Configuración opcional para el recorte
+SKIP_TRIM="${SKIP_TRIM:-0}"
+TRIM_FRONT="${TRIM_FRONT:-30}"
+TRIM_BACK="${TRIM_BACK:-30}"
+
 # Definir subdirectorios
 PROCESSED_DIR="$WORK_DIR/1_processed"
 TRIM_DIR="$WORK_DIR/2_trimmed"
@@ -27,8 +32,13 @@ mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR
 # Ejecutar paso 1: limpieza con SeqKit
 INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" ./scripts/De0_A1_Process_Fastq.4_SeqKit.sh
 
-# Paso 2: recorte de cebadores
-INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" ./scripts/De1_A1.5_Trim_Fastq.sh
+# Paso 2: recorte de cebadores (opcional)
+if [ "$SKIP_TRIM" -eq 1 ]; then
+    echo "Omitiendo recorte de secuencias."
+    cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
+else
+    INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" ./scripts/De1_A1.5_Trim_Fastq.sh
+fi
 
 # Paso 3: filtrado por calidad y longitud
 INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" ./scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
