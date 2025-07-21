@@ -46,11 +46,8 @@ if [ "$SKIP_TRIM" -eq 1 ]; then
     echo "Omitiendo recorte de secuencias."
     cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
 else
-    INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" ./scripts/De1_A1.5_Trim_Fastq.sh
+    INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" "$script_dir/De1_A1.5_Trim_Fastq.sh"
 fi
-=======
-# Paso 2: recorte de cebadores
-INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" "$script_dir/De1_A1.5_Trim_Fastq.sh"
 
 # Paso 3: filtrado por calidad y longitud
 INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" "$script_dir/De1.5_A2_Filtrado_NanoFilt_1.1.sh"

@@ -86,13 +86,13 @@ manual.  El entorno `clipon-qiime` también se reutiliza para el módulo
 El archivo `manifest.csv` requerido por QIIME2 puede crearse con:
 
 ```bash
-./scripts/generate_manifest.sh --filtered 3_filtered > manifest.csv
+./scripts/generate_manifest.sh --workdir <dir_trabajo> filtered > manifest.csv
 ```
 
-o bien utilizando las salidas de NGSpeciesID:
+También puede generarse a partir de los consensos unificados:
 
 ```bash
-./scripts/generate_manifest.sh --ngspecies 4_clustered > manifest.csv
+./scripts/generate_manifest.sh --workdir <dir_trabajo> unified > manifest.csv
 ```
 
 ### Clasificación con QIIME2
