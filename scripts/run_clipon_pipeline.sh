@@ -47,7 +47,7 @@ if [ "$SKIP_TRIM" -eq 1 ]; then
     echo "Omitiendo recorte de secuencias."
     cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
 else
-    INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" ./scripts/De1_A1.5_Trim_Fastq.sh
+    INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" "$script_dir/De1_A1.5_Trim_Fastq.sh"
 fi
 
 # Paso 3: filtrado por calidad y longitud
@@ -67,7 +67,8 @@ conda activate clipon-qiime
     "$UNIFIED_DIR" \
     "$BLAST_DB" \
     "$TAXONOMY_DB"
-
+    echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
+    
 # Paso 7: exportar resultados de clasificación
 "$script_dir/De3_A5_Export_Classification.sh" "$UNIFIED_DIR"
 
