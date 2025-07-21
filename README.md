@@ -66,16 +66,12 @@ mamba env create -f envs/clipon-qiime.yml
 mamba env create -f envs/clipon-ngs.yml
 ```
 
-Active el entorno correspondiente antes de ejecutar los scripts. Por ejemplo,
-para los pasos de preparación:
-
-```bash
-conda activate clipon-prep
-./scripts/De0_A1_Process_Fastq.4_SeqKit.sh
-```
-
-El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier** y
-contiene `msmtp` para habilitar las notificaciones por correo.
+Active cada entorno solo la primera vez para instalarlo.  El script
+`run_clipon_pipeline.sh` se encarga de activar el entorno adecuado en cada
+etapa, por lo que puede ejecutarse sin activar nada manualmente.  Si desea
+ejecutar las etapas por separado, active el entorno correspondiente de forma
+manual.  El entorno `clipon-qiime` también se reutiliza para el módulo
+**Classifier** y contiene `msmtp` para habilitar las notificaciones por correo.
 
 =======
 ### Clustering con NGSpeciesID
@@ -114,6 +110,9 @@ MANIFEST_FILE=manifest.tsv PREFIX=prueba DIRDB=NCBI_DB EMAIL=me@example.com \
 ```
 
 ### Ejecución completa
+El wrapper `run_clipon_pipeline.sh` puede ejecutarse desde cualquier
+directorio.  Activará los entornos Conda necesarios automáticamente.
+
 ```bash
 ./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 ```
