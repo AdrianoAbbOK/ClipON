@@ -25,18 +25,18 @@ LOG_FILE="$FILTER_DIR/nanofilt.log"
 mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR"
 
 # Ejecutar paso 1: limpieza con SeqKit
-INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" ./De0_A1_Process_Fastq.4_SeqKit.sh
+INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" ./scripts/De0_A1_Process_Fastq.4_SeqKit.sh
 
 # Paso 2: recorte de cebadores
-INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" ./De1_A1.5_Trim_Fastq.sh
+INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" ./scripts/De1_A1.5_Trim_Fastq.sh
 
 # Paso 3: filtrado por calidad y longitud
-INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" ./De1.5_A2_Filtrado_NanoFilt_1.1.sh
+INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" ./scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
 # Paso 4: clusterizado con NGSpeciesID
-INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" ./De2_A2.5_NGSpecies_Clustering.sh
+INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" ./scripts/De2_A2.5_NGSpecies_Clustering.sh
 
 # Paso 5: unificación de clusters
-BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" ./De2.5_A3_NGSpecies_Unificar_Clusters.sh
+BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" ./scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"

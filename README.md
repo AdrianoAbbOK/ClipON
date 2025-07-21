@@ -16,7 +16,7 @@
 Ejecuta todo el flujo con:
 
 ```bash
-./run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
+./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 ```
 
 Esto creará subdirectorios dentro de `<dir_trabajo>` para cada etapa.
@@ -25,25 +25,25 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
 
 - SeqKit
 - Cutadapt
-- NanoFilt (debe estar instalado antes de ejecutar `De1.5_A2_Filtrado_NanoFilt_1.1.sh`)
+- NanoFilt (debe estar instalado antes de ejecutar `scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh`)
 - QIIME2
-- msmtp (utilizado por `De2_A4__VSearch_Procesonuevo2.6.1.sh` para enviar notificaciones por correo)
+- msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para enviar notificaciones por correo)
 
 ## Ejemplos de ejecución
 
 ### Procesamiento con SeqKit
 ```bash
-./De0_A1_Process_Fastq.4_SeqKit.sh <dir_entrada> <dir_salida>
+./scripts/De0_A1_Process_Fastq.4_SeqKit.sh <dir_entrada> <dir_salida>
 ```
 
 ### Recorte con Cutadapt
 ```bash
-./De1_A1.5_Trim_Fastq.sh <dir_entrada> <dir_salida>
+./scripts/De1_A1.5_Trim_Fastq.sh <dir_entrada> <dir_salida>
 ```
 
 ### Filtrado con NanoFilt
 ```bash
-./De1.5_A2_Filtrado_NanoFilt_1.1.sh <dir_entrada> <dir_salida> <log_file>
+./scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh <dir_entrada> <dir_salida> <log_file>
 ```
 
 ### codex/crear-archivos-environment.yml-para-entornos
@@ -71,7 +71,7 @@ para los pasos de preparación:
 
 ```bash
 conda activate clipon-prep
-./De0_A1_Process_Fastq.4_SeqKit.sh
+./scripts/De0_A1_Process_Fastq.4_SeqKit.sh
 ```
 
 El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier** y
@@ -80,12 +80,12 @@ contiene `msmtp` para habilitar las notificaciones por correo.
 =======
 ### Clustering con NGSpeciesID
 ```bash
-./De2_A2.5_NGSpecies_Clustering.sh <dir_entrada> <dir_salida>
+./scripts/De2_A2.5_NGSpecies_Clustering.sh <dir_entrada> <dir_salida>
 ```
 
 ### Unificación de clusters
 ```bash
-./De2.5_A3_NGSpecies_Unificar_Clusters.sh <dir_base> <dir_salida>
+./scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh <dir_base> <dir_salida>
 ```
 
 ### Generar manifest automáticamente
@@ -103,19 +103,19 @@ o bien utilizando las salidas de NGSpeciesID:
 
 ### Clasificación con QIIME2
 ```bash
-./De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
+./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
 ```
 Para ejecutar todas las combinaciones de parámetros de forma automática puede usarse
-`De2_A4_VSearch_ejecutador_combinaciones1.1.sh`. Los valores de manifiesto, prefijo,
+`scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh`. Los valores de manifiesto, prefijo,
 base de datos y correo pueden pasarse como argumentos o mediante variables de entorno:
 ```bash
 MANIFEST_FILE=manifest.tsv PREFIX=prueba DIRDB=NCBI_DB EMAIL=me@example.com \
-./De2_A4_VSearch_ejecutador_combinaciones1.1.sh
+./scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh
 ```
 
 ### Ejecución completa
 ```bash
-./run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
+./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 ```
 
 ### Formato del Importing Manifest
