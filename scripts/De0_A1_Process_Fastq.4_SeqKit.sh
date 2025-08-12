@@ -64,8 +64,8 @@ for file in "$INPUT_DIR"/*.fastq; do
 
             # Generar estadísticas de lecturas para archivos crudos y procesados
             base_name="$(basename "$file" .fastq)"
-            python scripts/collect_read_stats.py "$file" "$OUTPUT_DIR/${base_name}_raw_stats.tsv"
-            python scripts/collect_read_stats.py "$CLEANED_FILE" "$OUTPUT_DIR/${base_name}_processed_stats.tsv"
+            python3 scripts/collect_read_stats.py "$file" "$OUTPUT_DIR/${base_name}_raw_stats.tsv"
+            python3 scripts/collect_read_stats.py "$CLEANED_FILE" "$OUTPUT_DIR/${base_name}_processed_stats.tsv"
         } >> "$LOG_FILE" 2>&1
     fi
 done
