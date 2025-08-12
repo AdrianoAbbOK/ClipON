@@ -4,6 +4,9 @@
 # Uso: ./run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 # El directorio de trabajo contendrá subcarpetas para cada etapa
 
+# Para un gráfico avanzado de la calidad de lectura combine los TSV generados en cada etapa (collect_read_stats.py):
+# Rscript scripts/read_quality_poster.R "ruta/etapa1.tsv,ruta/etapa2.tsv" salida.png
+
 set -e
 set -u
 set -o pipefail
