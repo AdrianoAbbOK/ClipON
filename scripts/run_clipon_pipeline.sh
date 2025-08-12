@@ -61,13 +61,17 @@ INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" "$script_dir/De2_A2.5_NGSpecie
 BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" "$script_dir/De2.5_A3_NGSpecies_Unificar_Clusters.sh"
 
 # Paso 6: clasificación con QIIME2
-conda activate clipon-qiime
-"$script_dir/De3_A4_Classify_NGS.sh" \
-    "$UNIFIED_DIR/consensos_todos.fasta" \
-    "$UNIFIED_DIR" \
-    "$BLAST_DB" \
-    "$TAXONOMY_DB"
+if [[ -z "${BLAST_DB:-}" || -z "${TAXONOMY_DB:-}" ]]; then
+    echo "Advertencia: BLAST_DB o TAXONOMY_DB no están definidos. Omitiendo clasificación."
+else
+    conda activate clipon-qiime
+    "$script_dir/De3_A4_Classify_NGS.sh" \
+        "$UNIFIED_DIR/consensos_todos.fasta" \
+        "$UNIFIED_DIR" \
+        "$BLAST_DB" \
+        "$TAXONOMY_DB"
     echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
+fi
     
 # Paso 7: exportar resultados de clasificación
 "$script_dir/De3_A4_Export_Classification.sh" "$UNIFIED_DIR"
