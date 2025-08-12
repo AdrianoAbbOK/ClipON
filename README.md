@@ -52,6 +52,15 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
 ./scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh <dir_entrada> <dir_salida> <log_file>
 ```
 
+### Estadísticas de lecturas
+Para obtener longitudes y calidades por lectura utilice el script ya incluido
+en el repositorio:
+
+```bash
+python scripts/collect_read_stats.py <archivo.fastq>
+```
+Así evita implementar herramientas duplicadas para esta tarea.
+
 ## Entornos Conda
 
 El repositorio incluye tres archivos de entorno en `envs/` para mantener
