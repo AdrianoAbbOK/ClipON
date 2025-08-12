@@ -30,6 +30,11 @@ fi
 # Crear el directorio de salida si no existe
 mkdir -p "$output_dir"
 
+# Preparar archivo de estadísticas
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+stats_file="$output_dir/read_stats_filtrado.tsv"
+echo -e "archivo\tlecturas\tlongitud_media\tcalidad_media" > "$stats_file"
+
 # Limpiar el archivo de log antes de comenzar
 echo "Proceso de filtrado comenzado a las $(date)" > "$log_file"
 
@@ -37,14 +42,18 @@ echo "Proceso de filtrado comenzado a las $(date)" > "$log_file"
 for file in "$input_dir"/*.fastq; do
     # Obtener el nombre del archivo sin la extensión
     base_name="$(basename "$file" .fastq)"
+    output_file="$output_dir/${base_name}_Filt650_750_Q10.fastq"
 
     # Ejecutar NanoFilt y guardar en formato FASTQ
     echo "Filtrando $file..." >> "$log_file"
-    cat "$file" | NanoFilt -l 650 --maxlength 750 -q 10 > "$output_dir/${base_name}_Filt650_750_Q10.fastq" 2>> "$log_file"
+    cat "$file" | NanoFilt -l 650 --maxlength 750 -q 10 > "$output_file" 2>> "$log_file"
 
     # Verificar si el proceso fue exitoso
     if [ $? -eq 0 ]; then
         echo "Filtrado completado para $file" >> "$log_file"
+        if [ -s "$output_file" ]; then
+            python "$script_dir/collect_read_stats.py" "$output_file" >> "$stats_file"
+        fi
     else
         echo "Hubo un error al filtrar $file" >> "$log_file"
     fi

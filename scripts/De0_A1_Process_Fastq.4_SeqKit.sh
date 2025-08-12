@@ -36,6 +36,13 @@ if [ ! -d "$OUTPUT_DIR" ]; then
     mkdir -p "$OUTPUT_DIR"
 fi
 
+# Preparar rutas para el script de estadísticas
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RAW_STATS_FILE="$OUTPUT_DIR/read_stats_crudo.tsv"
+PROC_STATS_FILE="$OUTPUT_DIR/read_stats_procesado.tsv"
+echo -e "archivo\tlecturas\tlongitud_media\tcalidad_media" > "$RAW_STATS_FILE"
+echo -e "archivo\tlecturas\tlongitud_media\tcalidad_media" > "$PROC_STATS_FILE"
+
 # Crear o vaciar archivo de log
 printf "Log de De0_A1_Process_Fastq.4_SeqKit.sh - %s\n" "$(date)" > "$LOG_FILE"
 
@@ -43,25 +50,22 @@ printf "Log de De0_A1_Process_Fastq.4_SeqKit.sh - %s\n" "$(date)" > "$LOG_FILE"
 files_processed=0
 for file in "$INPUT_DIR"/*.fastq; do
     if [ -f "$file" ]; then
+        python "$script_dir/collect_read_stats.py" "$file" >> "$RAW_STATS_FILE"
         files_processed=$((files_processed + 1))
+        CLEANED_FILE="${OUTPUT_DIR}/cleaned_$(basename "$file")"
         {
             echo "Procesando archivo: $file"
-
-            # Filtrar secuencias mal formateadas con seqkit sana
-            CLEANED_FILE="${OUTPUT_DIR}/cleaned_$(basename "$file")"
             echo "Filtrando secuencias mal formateadas con seqkit sana: $CLEANED_FILE"
-
-            # Filtrar las secuencias mal formateadas
             seqkit sana "$file" -o "$CLEANED_FILE"
-
-            # Verificar si el archivo tiene contenido después del filtrado
             if [ ! -s "$CLEANED_FILE" ]; then
                 echo "Advertencia: El archivo $file no tiene secuencias válidas después del filtrado. Se omite."
-                continue
+            else
+                echo "Archivo limpio guardado en: $CLEANED_FILE"
             fi
-
-            echo "Archivo limpio guardado en: $CLEANED_FILE"
         } >> "$LOG_FILE" 2>&1
+        if [ -s "$CLEANED_FILE" ]; then
+            python "$script_dir/collect_read_stats.py" "$CLEANED_FILE" >> "$PROC_STATS_FILE"
+        fi
     fi
 done
 
