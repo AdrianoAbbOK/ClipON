@@ -59,10 +59,15 @@ INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts
 
 # Generar gráfico de calidad vs longitud para múltiples etapas
 # Se captura solo la última línea para obtener la ruta del archivo generado
-PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
-    "$FILTER_DIR/read_quality_vs_length.png" \
-    $PROCESSED_DIR/*_processed_stats.tsv \
-    $FILTER_DIR/*_filtered_stats.tsv | tail -n 1)
+if command -v Rscript >/dev/null 2>&1; then
+    PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
+        "$FILTER_DIR/read_quality_vs_length.png" \
+        "$PROCESSED_DIR"/*_processed_stats.tsv \
+        "$FILTER_DIR"/*_filtered_stats.tsv | tail -n 1)
+else
+    echo "Rscript no encontrado; omitiendo la generación del gráfico. Instale R, por ejemplo: 'sudo apt install r-base'."
+    PLOT_FILE="N/A"
+fi
 
 conda activate clipon-ngs
 

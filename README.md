@@ -33,6 +33,7 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
 - Cutadapt
 - NanoFilt (debe estar instalado antes de ejecutar `scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh`)
 - QIIME2
+- R (opcional, necesario para generar el gráfico de calidad vs longitud; puede instalarse con `sudo apt install r-base`)
 - msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para enviar notificaciones por correo)
 
 ## Ejemplos de ejecución
