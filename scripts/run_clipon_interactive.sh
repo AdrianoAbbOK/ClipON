@@ -75,6 +75,27 @@ else
     TRIM_BACK=0
 fi
 
+# Solicitar rutas para bases de datos necesarias
+while true; do
+    read -rp "Ingrese la ruta al archivo de base de datos BLAST (.qza): " BLAST_DB
+    if [ ! -f "$BLAST_DB" ]; then
+        echo "El archivo '$BLAST_DB' no existe. Intente nuevamente."
+        continue
+    fi
+    export BLAST_DB
+    break
+done
+
+while true; do
+    read -rp "Ingrese la ruta al archivo de taxonomía (.qza): " TAXONOMY_DB
+    if [ ! -f "$TAXONOMY_DB" ]; then
+        echo "El archivo '$TAXONOMY_DB' no existe. Intente nuevamente."
+        continue
+    fi
+    export TAXONOMY_DB
+    break
+done
+
 echo "\nResumen de configuración:"
 echo "  Directorio FASTQ: $INPUT_DIR"
 echo "  Directorio de trabajo: $WORK_DIR"
@@ -83,6 +104,8 @@ if [ "$SKIP_TRIM" -eq 1 ]; then
 else
     echo "  Recorte: sí (inicio $TRIM_FRONT, final $TRIM_BACK)"
 fi
+echo "  Base de datos BLAST: $BLAST_DB"
+echo "  Base de datos de taxonomía: $TAXONOMY_DB"
 read -rp "¿Continuar con la ejecución del pipeline? (y/n) " go
 if [[ ! $go =~ ^[Yy]$ ]]; then
     echo "Operación cancelada por el usuario."
