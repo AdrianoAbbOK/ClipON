@@ -10,53 +10,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
-# Verificar que los entornos requeridos funcionen correctamente
-if ! scripts/test_envs.sh; then
-    echo "Fallo en la verificación de entornos. Abortando."
-    exit 1
-fi
-
 echo "========================================================="
 echo "Bienvenido al asistente de ejecución de ClipON"
 echo "Este script lo guiará para preparar e iniciar el pipeline."
 echo "========================================================="
 read -rp "Presione Enter para comenzar" _
 
-echo "\n-- Verificando instalación de Conda --"
-if ! command -v conda >/dev/null; then
-    echo "No se encontró 'conda' en el sistema."
-    read -rp "¿Desea instalar Miniconda? (y/n) " ans
-    if [[ $ans =~ ^[Yy]$ ]]; then
-        echo "Por favor instale Miniconda desde: https://docs.conda.io/en/latest/miniconda.html"
-        echo "Luego vuelva a ejecutar este script."
-        exit 1
-    else
-        echo "No es posible continuar sin conda. Abortando."
-        exit 1
-    fi
-else
-    echo "Conda detectado."
+# Verificar que los entornos requeridos funcionen correctamente
+if ! scripts/test_envs.sh; then
+    echo "Fallo en la verificación de entornos. Abortando."
+    exit 1
 fi
-
-# Verificar entornos requeridos
-REQUIRED_ENVS=(clipon-prep clipon-qiime clipon-ngs)
-for env in "${REQUIRED_ENVS[@]}"; do
-    if conda env list | awk '{print $1}' | grep -Fxq "$env"; then
-        echo "Entorno '$env' encontrado."
-    else
-        echo "Entorno '$env' no encontrado."
-        read -rp "¿Crear entorno '$env'? (y/n) " create
-        if [[ $create =~ ^[Yy]$ ]]; then
-            env_file="envs/${env}.yml"
-            if [ -f "$env_file" ]; then
-                conda env create -f "$env_file"
-            else
-                echo "Archivo $env_file no existe."
-            fi
-        fi
-    fi
-    echo
-done
 
 while true; do
     read -rp "Ingrese el directorio que contiene los archivos FASTQ: " INPUT_DIR
