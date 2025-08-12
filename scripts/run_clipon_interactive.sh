@@ -3,6 +3,10 @@ set -e
 
 # Script interactivo para ejecutar el pipeline de ClipON paso a paso
 
+# Determinar la ruta de este script y la raíz del repositorio
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
 echo "========================================================="
 echo "Bienvenido al asistente de ejecución de ClipON"
 echo "Este script lo guiará para preparar e iniciar el pipeline."
@@ -34,10 +38,11 @@ for env in "${REQUIRED_ENVS[@]}"; do
         echo "Entorno '$env' no encontrado."
         read -rp "¿Crear entorno '$env'? (y/n) " create
         if [[ $create =~ ^[Yy]$ ]]; then
-            if [ -f "envs/${env}.yml" ]; then
-                conda env create -f "envs/${env}.yml"
+            env_file="$ROOT_DIR/envs/${env}.yml"
+            if [ -f "$env_file" ]; then
+                conda env create -f "$env_file"
             else
-                echo "Archivo envs/${env}.yml no existe."
+                echo "Archivo $env_file no existe."
             fi
         fi
     fi
@@ -115,6 +120,6 @@ fi
 echo "\nIniciando pipeline..."
 
 SKIP_TRIM="$SKIP_TRIM" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" \
-    scripts/run_clipon_pipeline.sh "$INPUT_DIR" "$WORK_DIR"
+    "$SCRIPT_DIR/run_clipon_pipeline.sh" "$INPUT_DIR" "$WORK_DIR"
 
 echo "Ejecución finalizada. Resultados en: $WORK_DIR"
