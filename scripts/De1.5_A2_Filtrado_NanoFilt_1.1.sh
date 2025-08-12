@@ -40,11 +40,13 @@ for file in "$input_dir"/*.fastq; do
 
     # Ejecutar NanoFilt y guardar en formato FASTQ
     echo "Filtrando $file..." >> "$log_file"
-    cat "$file" | NanoFilt -l 650 --maxlength 750 -q 10 > "$output_dir/${base_name}_Filt650_750_Q10.fastq" 2>> "$log_file"
+    output_file="$output_dir/${base_name}_Filt650_750_Q10.fastq"
+    cat "$file" | NanoFilt -l 650 --maxlength 750 -q 10 > "$output_file" 2>> "$log_file"
 
     # Verificar si el proceso fue exitoso
     if [ $? -eq 0 ]; then
         echo "Filtrado completado para $file" >> "$log_file"
+        python scripts/collect_read_stats.py "$output_file" "$output_dir/${base_name}_filtered_stats.tsv" >> "$log_file" 2>&1
     else
         echo "Hubo un error al filtrar $file" >> "$log_file"
     fi
