@@ -7,6 +7,12 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
+# Verificar que los entornos requeridos funcionen correctamente
+if ! "$SCRIPT_DIR/test_envs.sh"; then
+    echo "Fallo en la verificación de entornos. Abortando."
+    exit 1
+fi
+
 echo "========================================================="
 echo "Bienvenido al asistente de ejecución de ClipON"
 echo "Este script lo guiará para preparar e iniciar el pipeline."
