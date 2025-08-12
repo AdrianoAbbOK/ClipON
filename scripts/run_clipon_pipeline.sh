@@ -57,9 +57,12 @@ fi
 # Paso 3: filtrado por calidad y longitud
 INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
-# Generar gráfico de calidad vs longitud
-# Se captura solo la última línea para obtener la ruta del archivo
-PLOT_FILE=$(Rscript scripts/plot_quality_vs_length.R "$WORK_DIR" | tail -n 1)
+# Generar gráfico de calidad vs longitud para múltiples etapas
+# Se captura solo la última línea para obtener la ruta del archivo generado
+PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
+    "$FILTER_DIR/read_quality_vs_length.png" \
+    $PROCESSED_DIR/*_processed_stats.tsv \
+    $FILTER_DIR/*_filtered_stats.tsv | tail -n 1)
 
 conda activate clipon-ngs
 
