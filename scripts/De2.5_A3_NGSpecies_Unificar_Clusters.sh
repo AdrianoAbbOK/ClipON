@@ -43,7 +43,7 @@ for carpeta in "$BASE_DIR"/*; do
     > "$archivo_salida"
 
     # Unificar los archivos .fasta dentro de la carpeta y modificar los IDs
-    for fasta in "$carpeta"/*.fasta; do
+    for fasta in "$carpeta"/*consensus.fasta; do
       if [ -f "$fasta" ]; then
         awk -v id="$identificador" '/^>/ {print $0 "_" id} !/^>/ {print $0}' "$fasta" >> "$archivo_salida"
       fi
