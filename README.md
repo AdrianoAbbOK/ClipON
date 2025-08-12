@@ -71,12 +71,14 @@ mamba env create -f envs/clipon-qiime.yml
 mamba env create -f envs/clipon-ngs.yml
 ```
 
-Si el archivo `envs/clipon-ngs.yml` cambia y el entorno ya existe,
-actualícelo con:
+Si alguno de los archivos de `envs/` cambia y el entorno ya existe,
+reconstrúyalo con:
 
 ```bash
-conda env update -n clipon-ngs -f envs/clipon-ngs.yml
+conda env update -f <archivo>.yml
 ```
+
+Reemplace `<archivo>` por el nombre del archivo YAML correspondiente.
 
 Active cada entorno solo la primera vez para instalarlo.  El script
 `run_clipon_pipeline.sh` se encarga de activar el entorno adecuado en cada

@@ -8,3 +8,5 @@ dependencies:
   - nanofilt=2.8.0
   - seqkit=2.9.0
   - pigz=2.8
+  - pandas=2.2.2
+  - matplotlib=3.8.4
