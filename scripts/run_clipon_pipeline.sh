@@ -79,4 +79,5 @@ bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
 
+echo -e "\nResumen de lecturas por etapa:"
 echo "Pipeline completado. Resultados en: $WORK_DIR"
