@@ -53,6 +53,10 @@ fi
 
 # Paso 3: filtrado por calidad y longitud
 INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
+
+# Generar gráfico de calidad vs longitud
+PLOT_FILE=$(Rscript scripts/plot_quality_vs_length.R "$WORK_DIR")
+
 conda activate clipon-ngs
 
 # Paso 4: clusterizado con NGSpeciesID
@@ -82,3 +86,4 @@ echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
 echo -e "\nResumen de lecturas por etapa:"
 python3 scripts/summarize_read_counts.py "$WORK_DIR"
 echo "Pipeline completado. Resultados en: $WORK_DIR"
+echo "Gráfico de calidad vs longitud: $PLOT_FILE"
