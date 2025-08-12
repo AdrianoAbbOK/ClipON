@@ -46,7 +46,7 @@ for file in "$input_dir"/*.fastq; do
     # Verificar si el proceso fue exitoso
     if [ $? -eq 0 ]; then
         echo "Filtrado completado para $file" >> "$log_file"
-        python scripts/collect_read_stats.py "$output_file" "$output_dir/${base_name}_filtered_stats.tsv" >> "$log_file" 2>&1
+        python3 scripts/collect_read_stats.py "$output_file" "$output_dir/${base_name}_filtered_stats.tsv" >> "$log_file" 2>&1
     else
         echo "Hubo un error al filtrar $file" >> "$log_file"
     fi
