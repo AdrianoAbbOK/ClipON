@@ -2,6 +2,8 @@
 set -e
 
 # Script interactivo para ejecutar el pipeline de ClipON paso a paso
+# Nota: la extracción de longitudes y calidades por lectura ya se realiza con
+# scripts/collect_read_stats.py
 
 # Determinar la raíz del repositorio y usar rutas relativas
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
