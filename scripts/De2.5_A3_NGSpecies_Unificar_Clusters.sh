@@ -22,6 +22,7 @@ mkdir -p "$DIR_SALIDA"
 
 # Archivo maestro que contendrá todas las secuencias con el identificador de experimento
 archivo_maestro="$DIR_SALIDA/consensos_todos.fasta"
+> "$archivo_maestro"
 
 # Inicializar una variable para verificar si se han procesado secuencias
 se_agregaron_secuencias=false
