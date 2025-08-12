@@ -8,9 +8,10 @@ set -e
 set -u
 set -o pipefail
 
-# Determinar la ruta del directorio donde está este script para poder invocar
-# los demás scripts sin importar desde dónde se ejecute
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Determinar la raíz del repositorio y usar rutas relativas
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
 
 # Inicializar conda y activar entornos según la etapa
 source "$(conda info --base)/etc/profile.d/conda.sh"
@@ -40,32 +41,32 @@ mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR
 
 # Ejecutar paso 1: limpieza con SeqKit
 conda activate clipon-prep
-INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" "$script_dir/De0_A1_Process_Fastq.4_SeqKit.sh"
+INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" bash scripts/De0_A1_Process_Fastq.4_SeqKit.sh
 
 # Paso 2: recorte de cebadores (opcional)
 if [ "$SKIP_TRIM" -eq 1 ]; then
     echo "Omitiendo recorte de secuencias."
     cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
 else
-    INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" "$script_dir/De1_A1.5_Trim_Fastq.sh"
+    INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" bash scripts/De1_A1.5_Trim_Fastq.sh
 fi
 
 # Paso 3: filtrado por calidad y longitud
-INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" "$script_dir/De1.5_A2_Filtrado_NanoFilt_1.1.sh"
+INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 conda activate clipon-ngs
 
 # Paso 4: clusterizado con NGSpeciesID
-INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" "$script_dir/De2_A2.5_NGSpecies_Clustering.sh"
+INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
 
 # Paso 5: unificación de clusters
-BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" "$script_dir/De2.5_A3_NGSpecies_Unificar_Clusters.sh"
+BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
 
 # Paso 6: clasificación con QIIME2
 if [[ -z "${BLAST_DB:-}" || -z "${TAXONOMY_DB:-}" ]]; then
     echo "Advertencia: BLAST_DB o TAXONOMY_DB no están definidos. Omitiendo clasificación."
 else
     conda activate clipon-qiime
-    "$script_dir/De3_A4_Classify_NGS.sh" \
+    bash scripts/De3_A4_Classify_NGS.sh \
         "$UNIFIED_DIR/consensos_todos.fasta" \
         "$UNIFIED_DIR" \
         "$BLAST_DB" \
@@ -74,7 +75,7 @@ else
 fi
     
 # Paso 7: exportar resultados de clasificación
-"$script_dir/De3_A4_Export_Classification.sh" "$UNIFIED_DIR"
+bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
 
