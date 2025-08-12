@@ -8,14 +8,18 @@ if (length(args) != 1) {
 work_dir <- args[1]
 file_cleaned <- file.path(work_dir, "read_stats_cleaned.tsv")
 file_filtered <- file.path(work_dir, "read_stats_650_750_Q10.tsv")
-output_png <- file.path(work_dir, "read_quality_vs_length.png")
+output_png <- normalizePath(file.path(work_dir, "read_quality_vs_length.png"),
+                             mustWork = FALSE)
 
-suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages({
+  library(ggplot2)
+  library(readr)
+})
 
-cleaned <- read.table(file_cleaned, header = TRUE, sep = "\t")
+cleaned <- readr::read_tsv(file_cleaned, show_col_types = FALSE)
 cleaned$dataset <- "cleaned"
 
-filtered <- read.table(file_filtered, header = TRUE, sep = "\t")
+filtered <- readr::read_tsv(file_filtered, show_col_types = FALSE)
 filtered$dataset <- "filtered"
 
 df <- rbind(cleaned, filtered)
@@ -25,6 +29,7 @@ p <- ggplot(df, aes(x = length, y = mean_quality, color = dataset)) +
   labs(x = "Read length", y = "Mean quality score", color = "Dataset") +
   theme_minimal()
 
-ggsave(output_png, plot = p, width = 6, height = 4)
+ggsave(output_png, plot = p, width = 6, height = 4, units = "in")
 
+message("Plot saved to: ", output_png)
 cat(output_png, "\n")

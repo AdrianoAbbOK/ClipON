@@ -58,7 +58,8 @@ fi
 INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
 # Generar gráfico de calidad vs longitud
-PLOT_FILE=$(Rscript scripts/plot_quality_vs_length.R "$WORK_DIR")
+# Se captura solo la última línea para obtener la ruta del archivo
+PLOT_FILE=$(Rscript scripts/plot_quality_vs_length.R "$WORK_DIR" | tail -n 1)
 
 conda activate clipon-ngs
 
