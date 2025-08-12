@@ -3,6 +3,10 @@ set -e
 
 # Script interactivo para ejecutar el pipeline de ClipON paso a paso
 
+# Determinar la ruta de este script y la raíz del repositorio
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
 echo "========================================================="
 echo "Bienvenido al asistente de ejecución de ClipON"
 echo "Este script lo guiará para preparar e iniciar el pipeline."
@@ -34,10 +38,11 @@ for env in "${REQUIRED_ENVS[@]}"; do
         echo "Entorno '$env' no encontrado."
         read -rp "¿Crear entorno '$env'? (y/n) " create
         if [[ $create =~ ^[Yy]$ ]]; then
-            if [ -f "envs/${env}.yml" ]; then
-                conda env create -f "envs/${env}.yml"
+            env_file="$ROOT_DIR/envs/${env}.yml"
+            if [ -f "$env_file" ]; then
+                conda env create -f "$env_file"
             else
-                echo "Archivo envs/${env}.yml no existe."
+                echo "Archivo $env_file no existe."
             fi
         fi
     fi
@@ -75,6 +80,27 @@ else
     TRIM_BACK=0
 fi
 
+# Solicitar rutas para bases de datos necesarias
+while true; do
+    read -rp "Ingrese la ruta al archivo de base de datos BLAST (.qza): " BLAST_DB
+    if [ ! -f "$BLAST_DB" ]; then
+        echo "El archivo '$BLAST_DB' no existe. Intente nuevamente."
+        continue
+    fi
+    export BLAST_DB
+    break
+done
+
+while true; do
+    read -rp "Ingrese la ruta al archivo de taxonomía (.qza): " TAXONOMY_DB
+    if [ ! -f "$TAXONOMY_DB" ]; then
+        echo "El archivo '$TAXONOMY_DB' no existe. Intente nuevamente."
+        continue
+    fi
+    export TAXONOMY_DB
+    break
+done
+
 echo "\nResumen de configuración:"
 echo "  Directorio FASTQ: $INPUT_DIR"
 echo "  Directorio de trabajo: $WORK_DIR"
@@ -83,6 +109,8 @@ if [ "$SKIP_TRIM" -eq 1 ]; then
 else
     echo "  Recorte: sí (inicio $TRIM_FRONT, final $TRIM_BACK)"
 fi
+echo "  Base de datos BLAST: $BLAST_DB"
+echo "  Base de datos de taxonomía: $TAXONOMY_DB"
 read -rp "¿Continuar con la ejecución del pipeline? (y/n) " go
 if [[ ! $go =~ ^[Yy]$ ]]; then
     echo "Operación cancelada por el usuario."
@@ -92,6 +120,6 @@ fi
 echo "\nIniciando pipeline..."
 
 SKIP_TRIM="$SKIP_TRIM" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" \
-    scripts/run_clipon_pipeline.sh "$INPUT_DIR" "$WORK_DIR"
+    "$SCRIPT_DIR/run_clipon_pipeline.sh" "$INPUT_DIR" "$WORK_DIR"
 
 echo "Ejecución finalizada. Resultados en: $WORK_DIR"
