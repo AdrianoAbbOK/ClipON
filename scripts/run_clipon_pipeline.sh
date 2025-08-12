@@ -52,6 +52,20 @@ fi
 
 # Paso 3: filtrado por calidad y longitud
 INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" "$script_dir/De1.5_A2_Filtrado_NanoFilt_1.1.sh"
+
+# Mostrar resumen de lecturas por etapa
+CRUDO_STATS="$PROCESSED_DIR/read_stats_crudo.tsv"
+PROC_STATS="$PROCESSED_DIR/read_stats_procesado.tsv"
+FILT_STATS="$FILTER_DIR/read_stats_filtrado.tsv"
+if [ -f "$CRUDO_STATS" ] && [ -f "$PROC_STATS" ] && [ -f "$FILT_STATS" ]; then
+    echo "\nResumen de lecturas por etapa:"
+    join -t $'\t' -a1 -e0 -o '1.1,1.2,2.2' <(tail -n +2 "$CRUDO_STATS" | sort) <(tail -n +2 "$PROC_STATS" | sort) | \
+    join -t $'\t' -a1 -e0 -o '1.1,1.2,1.3,2.2' - <(tail -n +2 "$FILT_STATS" | sort) | \
+    awk 'BEGIN {printf "%-40s %-10s %-10s %-10s\n", "Archivo", "crudo", "procesado", "filtrado"} {printf "%-40s %-10s %-10s %-10s\n", $1, $2, $3, $4}'
+else
+    echo "\nAdvertencia: No se encontraron todos los archivos de estadísticas para mostrar el resumen."
+fi
+
 conda activate clipon-ngs
 
 # Paso 4: clusterizado con NGSpeciesID
