@@ -38,4 +38,7 @@ qiime tools export \
     --input-path "$class_dir/search_results.qza" \
     --output-path "$export_dir"
 
+# Generar tabla con columnas adicionales de lecturas y muestra
+python3 "$(dirname "$0")/add_reads_and_sample.py" "$export_dir/taxonomy.tsv"
+
 echo "Exportacion completada. Resultados en: $export_dir"
