@@ -120,7 +120,7 @@ if [[ ! $go =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-echo "\nIniciando pipeline..."
+echo "Iniciando pipeline..."
 
 SKIP_TRIM="$SKIP_TRIM" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" \
     scripts/run_clipon_pipeline.sh "$INPUT_DIR" "$WORK_DIR"
