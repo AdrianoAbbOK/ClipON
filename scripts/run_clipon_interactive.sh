@@ -200,6 +200,11 @@ if command -v Rscript >/dev/null 2>&1; then
             echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
             PLOT_FILE="N/A"
         }
+    if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
+        Rscript -e "archivo <- '$PLOT_FILE'; if (.Platform\$OS.type=='unix') system2('xdg-open', archivo, wait=TRUE) else if (.Platform\$OS.type=='windows') shell.exec(archivo) else system2('open', archivo, wait=TRUE)"
+    else
+        echo "Gráfico de calidad vs longitud disponible en: $PLOT_FILE"
+    fi
 else
     echo "Rscript no encontrado; omitiendo la generación del gráfico. Instale R, por ejemplo: 'sudo apt install r-base'."
     PLOT_FILE="N/A"
@@ -233,9 +238,8 @@ if command -v Rscript >/dev/null 2>&1; then
             echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
             TAX_PLOT_FILE="N/A"
         }
-    read -p "¿Abrir el gráfico ahora? [y/N]: " OPEN_TAX_PLOT
-    if [[ $OPEN_TAX_PLOT =~ ^[Yy]$ && -f "$TAX_PLOT_FILE" ]]; then
-        xdg-open "$TAX_PLOT_FILE"
+    if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
+        Rscript -e "archivo <- '$TAX_PLOT_FILE'; if (.Platform\$OS.type=='unix') system2('xdg-open', archivo, wait=TRUE) else if (.Platform\$OS.type=='windows') shell.exec(archivo) else system2('open', archivo, wait=TRUE)"
     else
         echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
     fi
