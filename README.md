@@ -79,7 +79,7 @@ Para crear los entornos automáticamente ejecute:
 ./scripts/install_envs.sh
 ```
 
-El script verifica que `conda` esté disponible (instala Miniconda si es necesario) y crea los entornos que falten a partir de los YAML.
+El script verifica que `mamba` esté disponible (instala Miniconda y mamba si es necesario) y crea los entornos que falten a partir de los YAML.
 
 ### Descripción de los entornos
 
@@ -87,7 +87,7 @@ El script verifica que `conda` esté disponible (instala Miniconda si es necesar
 - `clipon-qiime`: clustering y clasificación con QIIME 2 y VSEARCH.
 - `clipon-ngs`: generación de consensos con NGSpeciesID.
 
-También puede crearlos manualmente con `mamba` (o `conda`):
+También puede crearlos manualmente con `mamba`:
 
 ```bash
 mamba env create -f envs/clipon-prep.yml
@@ -98,7 +98,7 @@ mamba env create -f envs/clipon-ngs.yml
 Si alguno de los archivos de `envs/` cambia y el entorno ya existe, reconstrúyalo con:
 
 ```bash
-conda env update -f <archivo>.yml
+mamba env update -f <archivo>.yml
 ```
 
 Después de instalar los entornos, verifique su funcionamiento con:

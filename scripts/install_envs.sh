@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Script to install ClipON conda environments
-# Checks for conda availability, installs Miniconda if requested,
+# Script to install ClipON environments using mamba
+# Checks for conda and mamba availability, installs Miniconda and mamba if requested,
 # and creates missing environments from the YAML files in ../envs
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -36,15 +36,24 @@ if ! command -v conda >/dev/null 2>&1; then
   fi
 fi
 
+# Ensure mamba is available
+if ! command -v mamba >/dev/null 2>&1; then
+  echo "Instalando mamba en el entorno base..."
+  if ! conda install -y mamba -n base -c conda-forge; then
+    echo "No se pudo instalar mamba" >&2
+    exit 1
+  fi
+fi
+
 # Iterate over YAML files and create missing environments
 for yml in "$ENV_DIR"/*.yml; do
   env_name="$(basename "$yml" .yml)"
-  if conda env list | awk '{print $1}' | grep -Fxq "$env_name"; then
+  if mamba env list | awk '{print $1}' | grep -Fxq "$env_name"; then
     echo "El entorno '$env_name' ya existe."
   else
     read -rp "El entorno '$env_name' no existe. ¿Desea crearlo? [y/N] " ans
     if [[ $ans =~ ^[Yy]$ ]]; then
-      conda env create -f "$yml"
+      mamba env create -f "$yml"
     else
       echo "Omitiendo '$env_name'."
     fi
