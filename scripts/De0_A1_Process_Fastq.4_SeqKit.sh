@@ -1,7 +1,5 @@
-#!/bin/bash
-set -e
-set -u
-set -o pipefail
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Verificar si seqkit está instalado
 if ! command -v seqkit &> /dev/null; then

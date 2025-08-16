@@ -1,7 +1,5 @@
-#!/bin/bash
-set -e
-set -u
-set -o pipefail
+#!/usr/bin/env bash
+set -euo pipefail
 
 if [ "$#" -ne 1 ]; then
     echo "Uso: $0 <dir_trabajo>" >&2
