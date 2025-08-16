@@ -42,6 +42,7 @@ for stage, pattern in patterns.items():
         file_name = os.path.basename(path)
         sample = re.sub(rf"_{stage}_stats\.tsv$", "", file_name)
         base = re.sub(r"^cleaned_", "", sample)
+        base = re.sub(r"_trimmed$", "", base)  # unify trimmed filenames
 
         # Skip duplicate "cleaned_" files for stages other than "filtered"
         if sample.startswith("cleaned_") and stage != "filtered":
@@ -54,7 +55,7 @@ for stage, pattern in patterns.items():
             print(f"Warning: could not read {path}: {e}", file=sys.stderr)
             num = 0
 
-        counts[base][stage] = num
+        counts[base][stage] += num
 
 print("archivo\traw\tprocessed\tfiltered")
 for sample in sorted(counts):

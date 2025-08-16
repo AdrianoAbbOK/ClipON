@@ -38,3 +38,32 @@ def test_cleaned_files_update_filtered(tmp_path):
     assert table["SAV_926008"]["filtered"] == 4
     assert "cleaned_CAV_37C01C" not in table
     assert "cleaned_SAV_926008" not in table
+
+
+def test_trimmed_files_are_aggregated(tmp_path):
+    write_stats(tmp_path / "sample_raw_stats.tsv", 2)
+    write_stats(tmp_path / "sample_trimmed_raw_stats.tsv", 3)
+    write_stats(tmp_path / "sample_processed_stats.tsv", 4)
+    write_stats(tmp_path / "sample_trimmed_processed_stats.tsv", 5)
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "summarize_read_counts.py"
+    result = subprocess.run(
+        [sys.executable, str(script), str(tmp_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    lines = result.stdout.strip().splitlines()
+    table = {}
+    for line in lines[1:]:
+        sample, raw, processed, filtered = line.split("\t")
+        table[sample] = {
+            "raw": int(raw),
+            "processed": int(processed),
+            "filtered": int(filtered),
+        }
+
+    assert table["sample"]["raw"] == 5
+    assert table["sample"]["processed"] == 9
+    assert "sample_trimmed" not in table
