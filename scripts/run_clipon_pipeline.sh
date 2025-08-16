@@ -31,6 +31,7 @@ WORK_DIR="$2"
 SKIP_TRIM="${SKIP_TRIM:-0}"
 TRIM_FRONT="${TRIM_FRONT:-30}"
 TRIM_BACK="${TRIM_BACK:-30}"
+RESUME_STEP="${RESUME_STEP:-1}"
 
 # Definir subdirectorios
 PROCESSED_DIR="$WORK_DIR/1_processed"
@@ -42,20 +43,48 @@ LOG_FILE="$FILTER_DIR/nanofilt.log"
 
 mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR"
 
-# Ejecutar paso 1: limpieza con SeqKit
-conda activate clipon-prep
-INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" bash scripts/De0_A1_Process_Fastq.4_SeqKit.sh
+run_step() {
+    local step="$1"
+    local env="$2"
+    shift 2
+    local cmd="$*"
 
-# Paso 2: recorte de cebadores (opcional)
-if [ "$SKIP_TRIM" -eq 1 ]; then
-    echo "Omitiendo recorte de secuencias."
-    cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
-else
-    INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" bash scripts/De1_A1.5_Trim_Fastq.sh
-fi
+    if [ "$RESUME_STEP" -gt "$step" ]; then
+        echo "Saltando paso $step; RESUME_STEP=$RESUME_STEP"
+        return 0
+    fi
 
-# Paso 3: filtrado por calidad y longitud
-INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
+    conda activate "$env"
+    eval "$cmd"
+    touch "$WORK_DIR/.step${step}_done"
+}
+
+trim_reads() {
+    if [ "$SKIP_TRIM" -eq 1 ]; then
+        echo "Omitiendo recorte de secuencias."
+        cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
+    else
+        INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" \
+            bash scripts/De1_A1.5_Trim_Fastq.sh
+    fi
+}
+
+classify_reads() {
+    if [[ -z "${BLAST_DB:-}" || -z "${TAXONOMY_DB:-}" ]]; then
+        echo "Advertencia: BLAST_DB o TAXONOMY_DB no están definidos. Omitiendo clasificación."
+        return 0
+    fi
+    bash scripts/De3_A4_Classify_NGS.sh \
+        "$UNIFIED_DIR/consensos_todos.fasta" \
+        "$UNIFIED_DIR" \
+        "$BLAST_DB" \
+        "$TAXONOMY_DB"
+    echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
+}
+
+run_step 1 clipon-prep INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" bash scripts/De0_A1_Process_Fastq.4_SeqKit.sh
+run_step 2 clipon-prep trim_reads
+run_step 3 clipon-prep INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
 # Generar gráfico de calidad vs longitud para múltiples etapas
 # Se captura solo la última línea para obtener la ruta del archivo generado
@@ -69,29 +98,10 @@ else
     PLOT_FILE="N/A"
 fi
 
-conda activate clipon-ngs
-
-# Paso 4: clusterizado con NGSpeciesID
-INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
-
-# Paso 5: unificación de clusters
-BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
-
-# Paso 6: clasificación con QIIME2
-if [[ -z "${BLAST_DB:-}" || -z "${TAXONOMY_DB:-}" ]]; then
-    echo "Advertencia: BLAST_DB o TAXONOMY_DB no están definidos. Omitiendo clasificación."
-else
-    conda activate clipon-qiime
-    bash scripts/De3_A4_Classify_NGS.sh \
-        "$UNIFIED_DIR/consensos_todos.fasta" \
-        "$UNIFIED_DIR" \
-        "$BLAST_DB" \
-        "$TAXONOMY_DB"
-    echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
-fi
-    
-# Paso 7: exportar resultados de clasificación
-bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
+run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
+run_step 6 clipon-qiime classify_reads
+run_step 7 clipon-qiime bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
 
