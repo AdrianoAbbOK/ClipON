@@ -105,6 +105,14 @@ run_step 7 clipon-qiime bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_D
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
 
+TAX_PLOT_FILE=$(Rscript scripts/plot_taxon_bar.R "$UNIFIED_DIR/MaxAc_5/taxonomy_with_sample.tsv" "$UNIFIED_DIR/MaxAc_5/taxon_stacked_bar.png" | tail -n 1)
+read -p "¿Abrir el gráfico ahora? [y/N]: " OPEN_TAX_PLOT
+if [[ $OPEN_TAX_PLOT =~ ^[Yy]$ ]]; then
+    xdg-open "$TAX_PLOT_FILE"
+else
+    echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
+fi
+
 echo -e "\nResumen de lecturas por etapa:"
 python3 scripts/summarize_read_counts.py "$WORK_DIR"
 echo "Pipeline completado. Resultados en: $WORK_DIR"
