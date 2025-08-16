@@ -88,6 +88,7 @@ if [ "$MODE" = "new" ]; then
 fi
 
 print_section "Paso 2: Recorte de secuencias"
+
 read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
 DEFAULT_TRIM_FRONT=0
 DEFAULT_TRIM_BACK=0
@@ -185,12 +186,13 @@ echo "    Máximos aceptados: $MAX_ACCEPTS"
 echo "    Consenso mínimo: $MIN_CONSENSUS"
 echo "  Base de datos BLAST: $BLAST_DB"
 echo "  Base de datos de taxonomía: $TAXONOMY_DB"
+echo "========================================================="
 read -rp "¿Continuar con la ejecución del pipeline? (y/n) " go
 if [[ ! $go =~ ^[Yy]$ ]]; then
     echo "Operación cancelada por el usuario."
     exit 0
 fi
-
+echo "========================================================="
 echo "Iniciando pipeline..."
 
 source "$(conda info --base)/etc/profile.d/conda.sh"
