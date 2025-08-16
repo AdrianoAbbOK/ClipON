@@ -22,6 +22,26 @@ if ! scripts/test_envs.sh; then
     exit 1
 fi
 
+# Elegir entre procesamiento nuevo o reanudación
+read -rp "¿Desea iniciar un procesamiento nuevo o reanudar uno previo? (n/r) " run_mode
+if [[ $run_mode =~ ^[Rr]$ ]]; then
+    MODE="resume"
+    while true; do
+        read -rp "Ingrese el directorio de trabajo existente: " WORK_DIR
+        if [ ! -d "$WORK_DIR" ]; then
+            echo "El directorio '$WORK_DIR' no existe o no es accesible. Intente nuevamente."
+            continue
+        fi
+        break
+    done
+    scripts/check_pipeline_status.sh "$WORK_DIR"
+    read -rp "Seleccione el paso de reanudación: " RESUME_STEP
+    echo "export RESUME_STEP=\"$RESUME_STEP\"" > "$WORK_DIR/resume_config.sh"
+    source "$WORK_DIR/resume_config.sh"
+else
+    MODE="new"
+fi
+
 while true; do
     read -rp "Ingrese el directorio que contiene los archivos FASTQ: " INPUT_DIR
     if [ ! -d "$INPUT_DIR" ]; then
@@ -38,8 +58,10 @@ while true; do
     break
 done
 
-read -rp "Ingrese el directorio de trabajo donde se guardarán los resultados: " WORK_DIR
-mkdir -p "$WORK_DIR"
+if [ "$MODE" = "new" ]; then
+    read -rp "Ingrese el directorio de trabajo donde se guardarán los resultados: " WORK_DIR
+    mkdir -p "$WORK_DIR"
+fi
 
 # Paso opcional de recorte de secuencias
 read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
@@ -77,6 +99,9 @@ done
 echo "\nResumen de configuración:"
 echo "  Directorio FASTQ: $INPUT_DIR"
 echo "  Directorio de trabajo: $WORK_DIR"
+if [ "$MODE" = "resume" ]; then
+    echo "  Reanudación desde el paso: $RESUME_STEP"
+fi
 if [ "$SKIP_TRIM" -eq 1 ]; then
     echo "  Recorte: no"
 else

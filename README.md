@@ -141,6 +141,15 @@ directorio.  Activará los entornos Conda necesarios automáticamente.
 ./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 ```
 
+### Asistente interactivo con reanudación
+El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
+
+```bash
+./scripts/run_clipon_interactive.sh
+```
+
+Si se elige reanudar, se solicitará el directorio de trabajo existente y se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado. A continuación, seleccione el paso desde el cual continuar; la elección se guarda en `resume_config.sh` y exporta la variable `RESUME_STEP` antes de llamar al pipeline.
+
 ### Formato del Importing Manifest
 Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. El archivo debe tener las columnas:
 `sample-id`, `absolute-filepath` y `direction`.
