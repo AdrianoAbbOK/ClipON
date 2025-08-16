@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Función auxiliar para solicitar parámetros con un valor por defecto
@@ -7,10 +7,10 @@ prompt_param() {
     local friendly="$2"
     local default="$3"
     local value
-    read -p "$friendly [$default]: " value
+    read -p "$friendly PREDETERMINADO = [$default]: " value
     value=${value:-$default}
     eval "$var_name=\"$value\""
-    echo "$friendly: $value"
+    echo "$friendly ELEGIDO : $value"
 }
 
 print_section() {
@@ -39,14 +39,20 @@ if ! scripts/test_envs.sh; then
     echo "Fallo en la verificación de entornos. Abortando."
     exit 1
 fi
+
+# Elegir entre procesamiento nuevo o reanudación antes de configurar directorios
+read -rp "¿Desea iniciar un procesamiento nuevo o reanudar uno previo? (n/r) " run_mode
+if [[ $run_mode =~ ^[Rr]$ ]]; then
+    MODE="resume"
+else
+    MODE="new"
+fi
+
 echo "========================================================="
 echo "Configuración de directorios y bases de datos"
 echo "========================================================="
 
-# Elegir entre procesamiento nuevo o reanudación
-read -rp "¿Desea iniciar un procesamiento nuevo o reanudar uno previo? (n/r) " run_mode
-if [[ $run_mode =~ ^[Rr]$ ]]; then
-    MODE="resume"
+if [ "$MODE" = "resume" ]; then
     while true; do
         read -rp "Ingrese el directorio de trabajo existente: " WORK_DIR
         WORK_DIR="${WORK_DIR%/}"
@@ -60,8 +66,6 @@ if [[ $run_mode =~ ^[Rr]$ ]]; then
     read -rp "Seleccione el paso de reanudación: " RESUME_STEP
     echo "export RESUME_STEP=\"$RESUME_STEP\"" > "$WORK_DIR/resume_config.sh"
     source "$WORK_DIR/resume_config.sh"
-else
-    MODE="new"
 fi
 
 while true; do
@@ -86,6 +90,33 @@ if [ "$MODE" = "new" ]; then
     WORK_DIR="${WORK_DIR%/}"
     mkdir -p "$WORK_DIR"
 fi
+
+# Solicitar rutas para bases de datos necesarias
+while true; do
+    read -rp "Ingrese la ruta al archivo de base de datos BLAST (.qza): " BLAST_DB
+    if [ ! -f "$BLAST_DB" ]; then
+        echo "El archivo '$BLAST_DB' no existe. Intente nuevamente."
+        continue
+    fi
+    export BLAST_DB
+    break
+done
+
+while true; do
+    read -rp "Ingrese la ruta al archivo de taxonomía (.qza): " TAXONOMY_DB
+    if [ ! -f "$TAXONOMY_DB" ]; then
+        echo "El archivo '$TAXONOMY_DB' no existe. Intente nuevamente."
+        continue
+    fi
+    export TAXONOMY_DB
+    break
+done
+
+echo "========================================================="
+echo "Configuración de parametros para el procesamiento"
+echo "-->Aparecerá la variable y el valor estandarizado:"
+echo "-->Modifique con un valor nuevo o presione enter para mantener el valor estandar"
+echo "========================================================="
 
 print_section "Paso 2: Recorte de secuencias"
 
@@ -136,56 +167,37 @@ prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY
 prompt_param MAX_ACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAX_ACCEPTS"
 prompt_param MIN_CONSENSUS "  Consenso mínimo (--p-min-consensus)" "$DEFAULT_MIN_CONSENSUS"
 
-# Solicitar rutas para bases de datos necesarias
-while true; do
-    read -rp "Ingrese la ruta al archivo de base de datos BLAST (.qza): " BLAST_DB
-    if [ ! -f "$BLAST_DB" ]; then
-        echo "El archivo '$BLAST_DB' no existe. Intente nuevamente."
-        continue
-    fi
-    export BLAST_DB
-    break
-done
-
-while true; do
-    read -rp "Ingrese la ruta al archivo de taxonomía (.qza): " TAXONOMY_DB
-    if [ ! -f "$TAXONOMY_DB" ]; then
-        echo "El archivo '$TAXONOMY_DB' no existe. Intente nuevamente."
-        continue
-    fi
-    export TAXONOMY_DB
-    break
-done
-
 echo "========================================================="
 echo "Resumen de configuración"
 echo "========================================================="
+echo " *Directorios:"
 echo "  Directorio FASTQ: $INPUT_DIR"
 echo "  Directorio de trabajo: $WORK_DIR"
+echo "  Base de datos BLAST: $BLAST_DB"
+echo "  Base de datos de taxonomía: $TAXONOMY_DB"
 if [ "$MODE" = "resume" ]; then
     echo "  Reanudación desde el paso: $RESUME_STEP"
 fi
+echo " *Recorte de secuencias"
 if [ "$SKIP_TRIM" -eq 1 ]; then
-    echo "  Recorte: no"
+    echo "  Sin recorte"
 else
-    echo "  Recorte: sí (inicio $TRIM_FRONT, final $TRIM_BACK)"
+    echo "  Recorte en -$TRIM_FRONT y +$TRIM_BACK"
 fi
-echo "  Filtro NanoFilt: longitudes $MIN_LEN-$MAX_LEN, calidad mínima $MIN_QUAL"
-echo "  NGSpeciesID:"
+echo " *Filtro NanoFilt: longitudes $MIN_LEN-$MAX_LEN, calidad mínima $MIN_QUAL"
+echo " *NGSpeciesID:"
 echo "    Longitud esperada del consenso: $M_LEN"
 echo "    Lecturas de soporte: $SUPPORT"
 echo "    Hilos: $THREADS"
 echo "    Calidad mínima: $QUAL"
 echo "    RC identidad: $RC_ID"
 echo "    Proporción mínima de abundancia: $ABUND_RATIO"
-echo "  Clasificación BLAST:"
+echo " *Clasificación BLAST:"
 echo "    Número de hilos: $NUM_THREADS"
 echo "    Identidad mínima: $PERC_ID"
 echo "    Cobertura de consulta: $QUERY_COV"
 echo "    Máximos aceptados: $MAX_ACCEPTS"
 echo "    Consenso mínimo: $MIN_CONSENSUS"
-echo "  Base de datos BLAST: $BLAST_DB"
-echo "  Base de datos de taxonomía: $TAXONOMY_DB"
 echo "========================================================="
 read -rp "¿Continuar con la ejecución del pipeline? (y/n) " go
 if [[ ! $go =~ ^[Yy]$ ]]; then
