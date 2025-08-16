@@ -244,8 +244,50 @@ else
     echo "Gráfico de calidad vs longitud: $PLOT_FILE"
 fi
 
+# Configuración de parámetros para NGSpeciesID
+DEFAULT_M_LEN=700
+DEFAULT_SUPPORT=150
+DEFAULT_THREADS=16
+DEFAULT_QUAL=10
+DEFAULT_RC_ID=0.98
+DEFAULT_ABUND_RATIO=0.01
+
+echo "Parámetros de NGSpeciesID:" 
+echo "  Longitud esperada del consenso (--m): $DEFAULT_M_LEN"
+echo "  Número mínimo de lecturas de soporte (--s): $DEFAULT_SUPPORT"
+echo "  Número de hilos (--t): $DEFAULT_THREADS"
+echo "  Calidad mínima (--q): $DEFAULT_QUAL"
+echo "  Umbral de identidad de RC (--rc_identity_threshold): $DEFAULT_RC_ID"
+echo "  Proporción mínima de abundancia (--abundance_ratio): $DEFAULT_ABUND_RATIO"
+read -p "¿Desea modificar estos valores? (y/n) " modify_ngs
+if [[ $modify_ngs =~ ^[Yy]$ ]]; then
+    read -p "Longitud esperada del consenso [${DEFAULT_M_LEN}]: " M_LEN
+    M_LEN=${M_LEN:-$DEFAULT_M_LEN}
+    read -p "Número mínimo de lecturas de soporte [${DEFAULT_SUPPORT}]: " SUPPORT
+    SUPPORT=${SUPPORT:-$DEFAULT_SUPPORT}
+    read -p "Número de hilos [${DEFAULT_THREADS}]: " THREADS
+    THREADS=${THREADS:-$DEFAULT_THREADS}
+    read -p "Calidad mínima [${DEFAULT_QUAL}]: " QUAL
+    QUAL=${QUAL:-$DEFAULT_QUAL}
+    read -p "Umbral de identidad de RC [${DEFAULT_RC_ID}]: " RC_ID
+    RC_ID=${RC_ID:-$DEFAULT_RC_ID}
+    read -p "Proporción mínima de abundancia [${DEFAULT_ABUND_RATIO}]: " ABUND_RATIO
+    ABUND_RATIO=${ABUND_RATIO:-$DEFAULT_ABUND_RATIO}
+else
+    M_LEN=$DEFAULT_M_LEN
+    SUPPORT=$DEFAULT_SUPPORT
+    THREADS=$DEFAULT_THREADS
+    QUAL=$DEFAULT_QUAL
+    RC_ID=$DEFAULT_RC_ID
+    ABUND_RATIO=$DEFAULT_ABUND_RATIO
+fi
+
 print_section "Paso 4: Clustering de NGSpecies"
-run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
+run_step 4 clipon-ngs \
+    M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
+    QUAL="$QUAL" RC_ID="$RC_ID" ABUND_RATIO="$ABUND_RATIO" \
+    INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
+    bash scripts/De2_A2.5_NGSpecies_Clustering.sh
 
 print_section "Paso 5: Unificación de clusters"
 run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
