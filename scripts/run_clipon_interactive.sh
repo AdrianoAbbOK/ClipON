@@ -191,6 +191,9 @@ run_step 2 clipon-prep trim_reads
 print_section "Paso 3: Filtrado con NanoFilt"
 run_step 3 clipon-prep INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
+echo -e "\nResumen de lecturas tras filtrado:"
+python3 scripts/summarize_read_counts.py "$WORK_DIR"
+
 print_section "Gráfico de calidad vs longitud"
 if command -v Rscript >/dev/null 2>&1; then
     PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
@@ -200,14 +203,16 @@ if command -v Rscript >/dev/null 2>&1; then
             echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
             PLOT_FILE="N/A"
         }
+    echo "Gráfico de calidad vs longitud: $PLOT_FILE"
     if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
         Rscript -e "archivo <- '$PLOT_FILE'; if (.Platform\$OS.type=='unix') system2('xdg-open', archivo, wait=TRUE) else if (.Platform\$OS.type=='windows') shell.exec(archivo) else system2('open', archivo, wait=TRUE)"
     else
-        echo "Gráfico de calidad vs longitud disponible en: $PLOT_FILE"
+        echo "No se pudo abrir el gráfico automáticamente."
     fi
 else
     echo "Rscript no encontrado; omitiendo la generación del gráfico. Instale R, por ejemplo: 'sudo apt install r-base'."
     PLOT_FILE="N/A"
+    echo "Gráfico de calidad vs longitud: $PLOT_FILE"
 fi
 
 print_section "Paso 4: Clustering de NGSpecies"
@@ -247,7 +252,5 @@ else
     echo "Rscript no encontrado; omitiendo la generación del gráfico de taxones. Instale R, por ejemplo: 'sudo apt install r-base'."
 fi
 
-print_section "Resumen final"
-python3 scripts/summarize_read_counts.py "$WORK_DIR"
 echo "Pipeline completado. Resultados en: $WORK_DIR"
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"

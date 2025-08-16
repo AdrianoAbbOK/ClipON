@@ -86,6 +86,9 @@ run_step 1 clipon-prep INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" bash s
 run_step 2 clipon-prep trim_reads
 run_step 3 clipon-prep INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
+echo -e "\nResumen de lecturas tras filtrado:"
+python3 scripts/summarize_read_counts.py "$WORK_DIR"
+
 # Generar gráfico de calidad vs longitud para múltiples etapas
 # Se captura solo la última línea para obtener la ruta del archivo generado
 if command -v Rscript >/dev/null 2>&1; then
@@ -100,6 +103,8 @@ else
     echo "Rscript no encontrado; omitiendo la generación del gráfico. Instale R, por ejemplo: 'sudo apt install r-base'."
     PLOT_FILE="N/A"
 fi
+
+echo "Gráfico de calidad vs longitud: $PLOT_FILE"
 
 run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
 run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
@@ -132,7 +137,5 @@ else
     echo "Rscript no encontrado; omitiendo la generación del gráfico de taxones. Instale R, por ejemplo: 'sudo apt install r-base'."
 fi
 
-echo -e "\nResumen de lecturas por etapa:"
-python3 scripts/summarize_read_counts.py "$WORK_DIR"
 echo "Pipeline completado. Resultados en: $WORK_DIR"
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
