@@ -34,6 +34,7 @@ for carpeta in "$BASE_DIR"/*; do
     nombre_carpeta=$(basename "$carpeta")
 
     # Usar el nombre completo de la carpeta como identificador de muestra
+
     identificador="$nombre_carpeta"
 
     # Archivo de salida individual
