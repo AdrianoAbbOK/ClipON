@@ -199,8 +199,26 @@ run_step 1 clipon-prep INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" bash s
 print_section "Paso 2: Recorte de secuencias"
 run_step 2 clipon-prep trim_reads
 
+DEFAULT_MIN_LEN=650
+DEFAULT_MAX_LEN=750
+DEFAULT_MIN_QUAL=10
+echo "Valores estándar: longitud mínima ${DEFAULT_MIN_LEN} bp, máxima ${DEFAULT_MAX_LEN} bp, calidad mínima ${DEFAULT_MIN_QUAL}" 
+read -p "¿Desea modificar estos valores? (y/n) " modify_filters
+if [[ $modify_filters =~ ^[Yy]$ ]]; then
+    read -p "Longitud mínima [${DEFAULT_MIN_LEN}]: " MIN_LEN
+    MIN_LEN=${MIN_LEN:-$DEFAULT_MIN_LEN}
+    read -p "Longitud máxima [${DEFAULT_MAX_LEN}]: " MAX_LEN
+    MAX_LEN=${MAX_LEN:-$DEFAULT_MAX_LEN}
+    read -p "Calidad mínima [${DEFAULT_MIN_QUAL}]: " MIN_QUAL
+    MIN_QUAL=${MIN_QUAL:-$DEFAULT_MIN_QUAL}
+else
+    MIN_LEN=$DEFAULT_MIN_LEN
+    MAX_LEN=$DEFAULT_MAX_LEN
+    MIN_QUAL=$DEFAULT_MIN_QUAL
+fi
+
 print_section "Paso 3: Filtrado con NanoFilt"
-run_step 3 clipon-prep INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
+run_step 3 clipon-prep MIN_LEN="$MIN_LEN" MAX_LEN="$MAX_LEN" MIN_QUAL="$MIN_QUAL" INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
 echo -e "\nResumen de lecturas tras filtrado:"
 python3 scripts/summarize_read_counts.py "$WORK_DIR"
