@@ -1,6 +1,24 @@
 #!/bin/bash
 set -euo pipefail
 
+# Función auxiliar para solicitar parámetros con un valor por defecto
+prompt_param() {
+    local var_name="$1"
+    local friendly="$2"
+    local default="$3"
+    local value
+    read -p "$friendly [$default]: " value
+    value=${value:-$default}
+    eval "$var_name=\"$value\""
+    echo "$friendly: $value"
+}
+
+print_section() {
+    echo "========================================================="
+    echo "$1"
+    echo "========================================================="
+}
+
 # Script interactivo para ejecutar el pipeline de ClipON paso a paso
 # Nota: la extracción de longitudes y calidades por lectura ya se realiza con
 # scripts/collect_read_stats.py
@@ -68,30 +86,56 @@ if [ "$MODE" = "new" ]; then
     WORK_DIR="${WORK_DIR%/}"
     mkdir -p "$WORK_DIR"
 fi
-echo "========================================================="
-# Paso opcional de recorte de secuencias
+
+print_section "Paso 2: Recorte de secuencias"
+
 read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
 DEFAULT_TRIM_FRONT=0
 DEFAULT_TRIM_BACK=0
 if [[ $do_trim =~ ^[Yy]$ ]]; then
-    echo "Valores estándar: inicio ${DEFAULT_TRIM_FRONT} bases, final ${DEFAULT_TRIM_BACK} bases."
-    read -p "¿Desea mantener estos valores? (y/n) " keep_defaults
-    if [[ $keep_defaults =~ ^[Yy]$ ]]; then
-        TRIM_FRONT=$DEFAULT_TRIM_FRONT
-        TRIM_BACK=$DEFAULT_TRIM_BACK
-    else
-        read -p "Número de bases a recortar del inicio [${DEFAULT_TRIM_FRONT}]: " TRIM_FRONT
-        TRIM_FRONT=${TRIM_FRONT:-$DEFAULT_TRIM_FRONT}
-        read -p "Número de bases a recortar del final [${DEFAULT_TRIM_BACK}]: " TRIM_BACK
-        TRIM_BACK=${TRIM_BACK:-$DEFAULT_TRIM_BACK}
-    fi
+    prompt_param TRIM_FRONT "Número de bases a recortar del inicio" "$DEFAULT_TRIM_FRONT"
+    prompt_param TRIM_BACK "Número de bases a recortar del final" "$DEFAULT_TRIM_BACK"
     SKIP_TRIM=0
 else
     SKIP_TRIM=1
     TRIM_FRONT=$DEFAULT_TRIM_FRONT
     TRIM_BACK=$DEFAULT_TRIM_BACK
 fi
-echo "========================================================="
+
+print_section "Paso 3: Filtrado con NanoFilt"
+DEFAULT_MIN_LEN=650
+DEFAULT_MAX_LEN=750
+DEFAULT_MIN_QUAL=10
+prompt_param MIN_LEN "  Longitud mínima" "$DEFAULT_MIN_LEN"
+prompt_param MAX_LEN "  Longitud máxima" "$DEFAULT_MAX_LEN"
+prompt_param MIN_QUAL "  Calidad mínima" "$DEFAULT_MIN_QUAL"
+
+print_section "Paso 4: Clustering de NGSpecies"
+DEFAULT_M_LEN=700
+DEFAULT_SUPPORT=150
+DEFAULT_THREADS=16
+DEFAULT_QUAL=10
+DEFAULT_RC_ID=0.98
+DEFAULT_ABUND_RATIO=0.01
+prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
+prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
+prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
+prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
+prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
+prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
+
+print_section "Paso 6: Clasificación taxonómica"
+DEFAULT_NUM_THREADS=5
+DEFAULT_PERC_ID=0.8
+DEFAULT_QUERY_COV=0.8
+DEFAULT_MAX_ACCEPTS=1
+DEFAULT_MIN_CONSENSUS=0.51
+prompt_param NUM_THREADS "  Número de hilos (--p-num-threads)" "$DEFAULT_NUM_THREADS"
+prompt_param PERC_ID "  Identidad mínima (--p-perc-identity)" "$DEFAULT_PERC_ID"
+prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY_COV"
+prompt_param MAX_ACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAX_ACCEPTS"
+prompt_param MIN_CONSENSUS "  Consenso mínimo (--p-min-consensus)" "$DEFAULT_MIN_CONSENSUS"
+
 # Solicitar rutas para bases de datos necesarias
 while true; do
     read -rp "Ingrese la ruta al archivo de base de datos BLAST (.qza): " BLAST_DB
@@ -114,7 +158,7 @@ while true; do
 done
 
 echo "========================================================="
-echo "Resumen de directorios"
+echo "Resumen de configuración"
 echo "========================================================="
 echo "  Directorio FASTQ: $INPUT_DIR"
 echo "  Directorio de trabajo: $WORK_DIR"
@@ -126,6 +170,20 @@ if [ "$SKIP_TRIM" -eq 1 ]; then
 else
     echo "  Recorte: sí (inicio $TRIM_FRONT, final $TRIM_BACK)"
 fi
+echo "  Filtro NanoFilt: longitudes $MIN_LEN-$MAX_LEN, calidad mínima $MIN_QUAL"
+echo "  NGSpeciesID:"
+echo "    Longitud esperada del consenso: $M_LEN"
+echo "    Lecturas de soporte: $SUPPORT"
+echo "    Hilos: $THREADS"
+echo "    Calidad mínima: $QUAL"
+echo "    RC identidad: $RC_ID"
+echo "    Proporción mínima de abundancia: $ABUND_RATIO"
+echo "  Clasificación BLAST:"
+echo "    Número de hilos: $NUM_THREADS"
+echo "    Identidad mínima: $PERC_ID"
+echo "    Cobertura de consulta: $QUERY_COV"
+echo "    Máximos aceptados: $MAX_ACCEPTS"
+echo "    Consenso mínimo: $MIN_CONSENSUS"
 echo "  Base de datos BLAST: $BLAST_DB"
 echo "  Base de datos de taxonomía: $TAXONOMY_DB"
 echo "========================================================="
@@ -165,12 +223,6 @@ run_step() {
     touch "$WORK_DIR/.step${step}_done"
 }
 
-print_section() {
-    echo "========================================================="
-    echo "$1"
-    echo "========================================================="
-}
-
 trim_reads() {
     if [ "$SKIP_TRIM" -eq 1 ]; then
         echo "Omitiendo recorte de secuencias."
@@ -201,25 +253,6 @@ run_step 1 clipon-prep INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" bash s
 
 print_section "Paso 2: Recorte de secuencias"
 run_step 2 clipon-prep trim_reads
-
-DEFAULT_MIN_LEN=650
-DEFAULT_MAX_LEN=750
-DEFAULT_MIN_QUAL=10
-echo "Valores estándar: longitud mínima ${DEFAULT_MIN_LEN} bp, máxima ${DEFAULT_MAX_LEN} bp, calidad mínima ${DEFAULT_MIN_QUAL}" 
-read -p "¿Desea modificar estos valores? (y/n) " modify_filters
-if [[ $modify_filters =~ ^[Yy]$ ]]; then
-    read -p "Longitud mínima [${DEFAULT_MIN_LEN}]: " MIN_LEN
-    MIN_LEN=${MIN_LEN:-$DEFAULT_MIN_LEN}
-    read -p "Longitud máxima [${DEFAULT_MAX_LEN}]: " MAX_LEN
-    MAX_LEN=${MAX_LEN:-$DEFAULT_MAX_LEN}
-    read -p "Calidad mínima [${DEFAULT_MIN_QUAL}]: " MIN_QUAL
-    MIN_QUAL=${MIN_QUAL:-$DEFAULT_MIN_QUAL}
-else
-    MIN_LEN=$DEFAULT_MIN_LEN
-    MAX_LEN=$DEFAULT_MAX_LEN
-    MIN_QUAL=$DEFAULT_MIN_QUAL
-fi
-
 print_section "Paso 3: Filtrado con NanoFilt"
 run_step 3 clipon-prep MIN_LEN="$MIN_LEN" MAX_LEN="$MAX_LEN" MIN_QUAL="$MIN_QUAL" INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
@@ -247,44 +280,6 @@ else
     echo "Gráfico de calidad vs longitud: $PLOT_FILE"
 fi
 
-# Configuración de parámetros para NGSpeciesID
-DEFAULT_M_LEN=700
-DEFAULT_SUPPORT=150
-DEFAULT_THREADS=16
-DEFAULT_QUAL=10
-DEFAULT_RC_ID=0.98
-DEFAULT_ABUND_RATIO=0.01
-
-echo "Parámetros de NGSpeciesID:" 
-echo "  Longitud esperada del consenso (--m): $DEFAULT_M_LEN"
-echo "  Número mínimo de lecturas de soporte (--s): $DEFAULT_SUPPORT"
-echo "  Número de hilos (--t): $DEFAULT_THREADS"
-echo "  Calidad mínima (--q): $DEFAULT_QUAL"
-echo "  Umbral de identidad de RC (--rc_identity_threshold): $DEFAULT_RC_ID"
-echo "  Proporción mínima de abundancia (--abundance_ratio): $DEFAULT_ABUND_RATIO"
-read -p "¿Desea modificar estos valores? (y/n) " modify_ngs
-if [[ $modify_ngs =~ ^[Yy]$ ]]; then
-    read -p "Longitud esperada del consenso [${DEFAULT_M_LEN}]: " M_LEN
-    M_LEN=${M_LEN:-$DEFAULT_M_LEN}
-    read -p "Número mínimo de lecturas de soporte [${DEFAULT_SUPPORT}]: " SUPPORT
-    SUPPORT=${SUPPORT:-$DEFAULT_SUPPORT}
-    read -p "Número de hilos [${DEFAULT_THREADS}]: " THREADS
-    THREADS=${THREADS:-$DEFAULT_THREADS}
-    read -p "Calidad mínima [${DEFAULT_QUAL}]: " QUAL
-    QUAL=${QUAL:-$DEFAULT_QUAL}
-    read -p "Umbral de identidad de RC [${DEFAULT_RC_ID}]: " RC_ID
-    RC_ID=${RC_ID:-$DEFAULT_RC_ID}
-    read -p "Proporción mínima de abundancia [${DEFAULT_ABUND_RATIO}]: " ABUND_RATIO
-    ABUND_RATIO=${ABUND_RATIO:-$DEFAULT_ABUND_RATIO}
-else
-    M_LEN=$DEFAULT_M_LEN
-    SUPPORT=$DEFAULT_SUPPORT
-    THREADS=$DEFAULT_THREADS
-    QUAL=$DEFAULT_QUAL
-    RC_ID=$DEFAULT_RC_ID
-    ABUND_RATIO=$DEFAULT_ABUND_RATIO
-fi
-
 print_section "Paso 4: Clustering de NGSpecies"
 run_step 4 clipon-ngs \
     M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
@@ -298,39 +293,6 @@ run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scr
 if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     echo "No se creó el archivo maestro de consensos. Abortando pipeline."
     exit 1
-fi
-
-# Configuración de parámetros para la clasificación BLAST
-DEFAULT_NUM_THREADS=5
-DEFAULT_PERC_ID=0.8
-DEFAULT_QUERY_COV=0.8
-DEFAULT_MAX_ACCEPTS=1
-DEFAULT_MIN_CONSENSUS=0.51
-
-echo "Parámetros de clasificación BLAST:"
-echo "  Número de hilos (--p-num-threads): $DEFAULT_NUM_THREADS"
-echo "  Identidad mínima (--p-perc-identity): $DEFAULT_PERC_ID"
-echo "  Cobertura de consulta (--p-query-cov): $DEFAULT_QUERY_COV"
-echo "  Máximos aceptados (--p-maxaccepts): $DEFAULT_MAX_ACCEPTS"
-echo "  Consenso mínimo (--p-min-consensus): $DEFAULT_MIN_CONSENSUS"
-read -p "¿Desea modificar estos valores? (y/n) " modify_class
-if [[ $modify_class =~ ^[Yy]$ ]]; then
-    read -p "Número de hilos [${DEFAULT_NUM_THREADS}]: " NUM_THREADS
-    NUM_THREADS=${NUM_THREADS:-$DEFAULT_NUM_THREADS}
-    read -p "Identidad mínima [${DEFAULT_PERC_ID}]: " PERC_ID
-    PERC_ID=${PERC_ID:-$DEFAULT_PERC_ID}
-    read -p "Cobertura de consulta [${DEFAULT_QUERY_COV}]: " QUERY_COV
-    QUERY_COV=${QUERY_COV:-$DEFAULT_QUERY_COV}
-    read -p "Máximos aceptados [${DEFAULT_MAX_ACCEPTS}]: " MAX_ACCEPTS
-    MAX_ACCEPTS=${MAX_ACCEPTS:-$DEFAULT_MAX_ACCEPTS}
-    read -p "Consenso mínimo [${DEFAULT_MIN_CONSENSUS}]: " MIN_CONSENSUS
-    MIN_CONSENSUS=${MIN_CONSENSUS:-$DEFAULT_MIN_CONSENSUS}
-else
-    NUM_THREADS=$DEFAULT_NUM_THREADS
-    PERC_ID=$DEFAULT_PERC_ID
-    QUERY_COV=$DEFAULT_QUERY_COV
-    MAX_ACCEPTS=$DEFAULT_MAX_ACCEPTS
-    MIN_CONSENSUS=$DEFAULT_MIN_CONSENSUS
 fi
 
 print_section "Paso 6: Clasificación taxonómica"
