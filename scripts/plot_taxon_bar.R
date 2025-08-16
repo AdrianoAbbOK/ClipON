@@ -21,12 +21,20 @@ suppressPackageStartupMessages({
 # Se espera que contenga al menos las columnas: Sample, Taxon y Reads
 data <- read_tsv(input_file, show_col_types = FALSE)
 
+# Asegurarse de que la columna Reads sea numérica y eliminar filas vacías
 plot_data <- data %>%
+  mutate(Reads = suppressWarnings(as.numeric(Reads))) %>%
   select(Sample, Taxon, Reads) %>%
+  filter(!is.na(Reads) & Reads > 0) %>%
   group_by(Sample, Taxon) %>%
   summarise(Reads = sum(Reads), .groups = "drop") %>%
   group_by(Sample) %>%
-  mutate(Percent = Reads / sum(Reads))
+  mutate(Percent = Reads / sum(Reads)) %>%
+  ungroup()
+
+if (nrow(plot_data) == 0) {
+  stop("No se encontraron lecturas válidas en el archivo de entrada")
+}
 
 p <- ggplot(plot_data, aes(x = Sample, y = Percent, fill = Taxon)) +
   geom_col() +
