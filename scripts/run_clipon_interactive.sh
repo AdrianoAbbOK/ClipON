@@ -21,6 +21,9 @@ if ! scripts/test_envs.sh; then
     echo "Fallo en la verificación de entornos. Abortando."
     exit 1
 fi
+echo "========================================================="
+echo "Configuración de directorios y bases de datos"
+echo "========================================================="
 
 # Elegir entre procesamiento nuevo o reanudación
 read -rp "¿Desea iniciar un procesamiento nuevo o reanudar uno previo? (n/r) " run_mode
