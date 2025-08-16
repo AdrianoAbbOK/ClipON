@@ -1,8 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
-set -u
-set -o pipefail
 
 # Comprobar que las dependencias necesarias están instaladas
 if ! command -v qiime >/dev/null 2>&1; then

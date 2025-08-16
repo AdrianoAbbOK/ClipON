@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Script to install ClipON conda environments
 # Checks for conda availability, installs Miniconda if requested,

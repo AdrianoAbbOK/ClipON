@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Script to verify required ClipON conda environments are present
 # and can run a simple command.

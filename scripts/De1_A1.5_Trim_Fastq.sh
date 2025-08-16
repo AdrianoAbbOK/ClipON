@@ -1,7 +1,5 @@
-#!/bin/bash
-set -e
-set -u
-set -o pipefail
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Chequeo si cutadapt está instalado
 if ! command -v cutadapt >/dev/null; then

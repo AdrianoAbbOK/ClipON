@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Función auxiliar para solicitar parámetros con un valor por defecto

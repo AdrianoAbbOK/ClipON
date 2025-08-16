@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Wrapper para ejecutar la cadena completa de procesamiento de ClipON
 # Uso: ./run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
@@ -7,9 +8,6 @@
 # Para un gráfico avanzado de la calidad de lectura combine los TSV generados en cada etapa (collect_read_stats.py):
 # Rscript scripts/read_quality_poster.R "ruta/etapa1.tsv,ruta/etapa2.tsv" salida.png
 
-set -e
-set -u
-set -o pipefail
 
 # Determinar la raíz del repositorio y usar rutas relativas
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
