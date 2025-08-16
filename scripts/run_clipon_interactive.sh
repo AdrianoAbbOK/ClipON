@@ -71,14 +71,25 @@ fi
 
 # Paso opcional de recorte de secuencias
 read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
+DEFAULT_TRIM_FRONT=0
+DEFAULT_TRIM_BACK=0
 if [[ $do_trim =~ ^[Yy]$ ]]; then
-    read -rp "Número de bases a recortar del inicio: " TRIM_FRONT
-    read -rp "Número de bases a recortar del final: " TRIM_BACK
+    echo "Valores estándar: inicio ${DEFAULT_TRIM_FRONT} bases, final ${DEFAULT_TRIM_BACK} bases."
+    read -p "¿Desea mantener estos valores? (y/n) " keep_defaults
+    if [[ $keep_defaults =~ ^[Yy]$ ]]; then
+        TRIM_FRONT=$DEFAULT_TRIM_FRONT
+        TRIM_BACK=$DEFAULT_TRIM_BACK
+    else
+        read -p "Número de bases a recortar del inicio [${DEFAULT_TRIM_FRONT}]: " TRIM_FRONT
+        TRIM_FRONT=${TRIM_FRONT:-$DEFAULT_TRIM_FRONT}
+        read -p "Número de bases a recortar del final [${DEFAULT_TRIM_BACK}]: " TRIM_BACK
+        TRIM_BACK=${TRIM_BACK:-$DEFAULT_TRIM_BACK}
+    fi
     SKIP_TRIM=0
 else
     SKIP_TRIM=1
-    TRIM_FRONT=0
-    TRIM_BACK=0
+    TRIM_FRONT=$DEFAULT_TRIM_FRONT
+    TRIM_BACK=$DEFAULT_TRIM_BACK
 fi
 
 # Solicitar rutas para bases de datos necesarias
