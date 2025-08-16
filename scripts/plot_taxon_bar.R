@@ -37,4 +37,6 @@ p <- ggplot(plot_data, aes(x = Sample, y = Percent, fill = Taxon)) +
 
 ggsave(output_file, p, width = 8, height = 5, dpi = 300)
 
-cat(output_file, "\n")
+# Imprimir la ruta absoluta del archivo generado
+output_path <- normalizePath(output_file)
+cat(output_path, "\n")
