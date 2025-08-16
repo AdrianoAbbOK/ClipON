@@ -99,7 +99,9 @@ while true; do
     break
 done
 
-echo "\nResumen de configuración:"
+echo "========================================================="
+echo "Resumen de directorios"
+echo "========================================================="
 echo "  Directorio FASTQ: $INPUT_DIR"
 echo "  Directorio de trabajo: $WORK_DIR"
 if [ "$MODE" = "resume" ]; then
