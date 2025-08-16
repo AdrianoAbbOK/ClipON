@@ -321,20 +321,21 @@ echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
 
 print_section "Gráfico de taxones"
 TAX_PLOT_FILE="N/A"
-if command -v Rscript >/dev/null 2>&1; then
-    TAX_PLOT_FILE=$(Rscript scripts/plot_taxon_bar.R \
+if command -v python >/dev/null 2>&1; then
+    TAX_PLOT_FILE=$(python scripts/plot_taxon_bar.py \
         "$UNIFIED_DIR/MaxAc_5/taxonomy_with_sample.tsv" \
-        "$UNIFIED_DIR/MaxAc_5/taxon_stacked_bar.png" 2>&1 | tee -a "$WORK_DIR/r_plot.log" | tail -n 1) || {
-            echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
+        "$UNIFIED_DIR/MaxAc_5/taxon_stacked_bar.png" 2>&1 | \
+        tee -a "$WORK_DIR/taxon_plot.log" | tail -n 1) || {
+            echo "Fallo en python: revisar dependencias" >> "$WORK_DIR/taxon_plot.log"
             TAX_PLOT_FILE="N/A"
         }
     if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
-        Rscript -e "archivo <- '$TAX_PLOT_FILE'; if (.Platform\$OS.type=='unix') system2('xdg-open', archivo, wait=TRUE) else if (.Platform\$OS.type=='windows') shell.exec(archivo) else system2('open', archivo, wait=TRUE)"
+        xdg-open "$TAX_PLOT_FILE"
     else
         echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
     fi
 else
-    echo "Rscript no encontrado; omitiendo la generación del gráfico de taxones. Instale R, por ejemplo: 'sudo apt install r-base'."
+    echo "Python no encontrado; omitiendo la generación del gráfico de taxones."
 fi
 
 print_section "Lecturas por especie"
