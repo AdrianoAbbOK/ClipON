@@ -39,14 +39,22 @@ counts = defaultdict(lambda: {"raw": 0, "processed": 0, "filtered": 0})
 
 for stage, pattern in patterns.items():
     for path in glob.glob(os.path.join(base_dir, "**", pattern), recursive=True):
-        sample = re.sub(rf"_{stage}_stats\.tsv$", "", os.path.basename(path))
+        file_name = os.path.basename(path)
+        sample = re.sub(rf"_{stage}_stats\.tsv$", "", file_name)
+        base = re.sub(r"^cleaned_", "", sample)
+
+        # Skip duplicate "cleaned_" files for stages other than "filtered"
+        if sample.startswith("cleaned_") and stage != "filtered":
+            continue
+
         try:
             with open(path) as fh:
                 num = sum(1 for _ in fh) - 1  # subtract header
         except OSError as e:
             print(f"Warning: could not read {path}: {e}", file=sys.stderr)
             num = 0
-        counts[sample][stage] = num
+
+        counts[base][stage] = num
 
 print("archivo\traw\tprocessed\tfiltered")
 for sample in sorted(counts):
