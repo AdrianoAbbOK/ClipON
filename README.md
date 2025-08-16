@@ -64,16 +64,23 @@ Así evita implementar herramientas duplicadas para esta tarea.
 
 ## Entornos Conda
 
-El repositorio incluye tres archivos de entorno en `envs/` para mantener
-pequeñas dependencias por etapa.
+El repositorio incluye archivos de entorno en `envs/` y un asistente para instalarlos.
 
-```text
-envs/clipon-prep.yml   # QC y recorte
-envs/clipon-qiime.yml  # clustering con VSEARCH y clasificación
-envs/clipon-ngs.yml    # pipeline con NGSpeciesID
+Para crear los entornos automáticamente ejecute:
+
+```bash
+./scripts/install_envs.sh
 ```
 
-Cree cada entorno con `mamba` (o `conda` si no utiliza mamba):
+El script verifica que `conda` esté disponible (instala Miniconda si es necesario) y crea los entornos que falten a partir de los YAML.
+
+### Descripción de los entornos
+
+- `clipon-prep`: control de calidad y recorte inicial.
+- `clipon-qiime`: clustering y clasificación con QIIME 2 y VSEARCH.
+- `clipon-ngs`: generación de consensos con NGSpeciesID.
+
+También puede crearlos manualmente con `mamba` (o `conda`):
 
 ```bash
 mamba env create -f envs/clipon-prep.yml
@@ -81,21 +88,14 @@ mamba env create -f envs/clipon-qiime.yml
 mamba env create -f envs/clipon-ngs.yml
 ```
 
-Si alguno de los archivos de `envs/` cambia y el entorno ya existe,
-reconstrúyalo con:
+Si alguno de los archivos de `envs/` cambia y el entorno ya existe, reconstrúyalo con:
 
 ```bash
 conda env update -f <archivo>.yml
 ```
 
-Reemplace `<archivo>` por el nombre del archivo YAML correspondiente.
+Active cada entorno solo la primera vez para instalarlo. El script `run_clipon_pipeline.sh` se encarga de activar el entorno adecuado en cada etapa, por lo que puede ejecutarse sin activar nada manualmente. Si desea ejecutar las etapas por separado, active el entorno correspondiente de forma manual. El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier** y contiene `msmtp` para habilitar las notificaciones por correo.
 
-Active cada entorno solo la primera vez para instalarlo.  El script
-`run_clipon_pipeline.sh` se encarga de activar el entorno adecuado en cada
-etapa, por lo que puede ejecutarse sin activar nada manualmente.  Si desea
-ejecutar las etapas por separado, active el entorno correspondiente de forma
-manual.  El entorno `clipon-qiime` también se reutiliza para el módulo
-**Classifier** y contiene `msmtp` para habilitar las notificaciones por correo.
 
 ### Clustering con NGSpeciesID
 ```bash

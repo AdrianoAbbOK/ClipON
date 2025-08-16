@@ -3,9 +3,15 @@
 # Script to verify required ClipON conda environments are present
 # and can run a simple command.
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Check that conda is available
-if ! command -v conda >/dev/null; then
+if ! command -v conda >/dev/null 2>&1; then
   echo "Conda no se encontró en el sistema."
+  read -rp "¿Desea ejecutar $SCRIPT_DIR/install_envs.sh para instalarlo? [y/N] " resp
+  if [[ $resp =~ ^[Yy]$ ]]; then
+    "$SCRIPT_DIR/install_envs.sh"
+  fi
   exit 1
 fi
 
@@ -16,6 +22,8 @@ declare -A ENV_CHECKS=(
   [clipon-qiime]="qiime --help"
   [clipon-ngs]="minimap2 --version"
 )
+
+missing_envs=()
 
 for env in "${!ENV_CHECKS[@]}"; do
   echo "Comprobando entorno '$env'..."
@@ -28,7 +36,16 @@ for env in "${!ENV_CHECKS[@]}"; do
     fi
   else
     echo "  - Entorno no encontrado"
+    missing_envs+=("$env")
   fi
   echo
 
 done
+
+if (( ${#missing_envs[@]} )); then
+  echo "Entornos faltantes: ${missing_envs[*]}"
+  read -rp "¿Desea ejecutar $SCRIPT_DIR/install_envs.sh para instalarlos? [y/N] " answer
+  if [[ $answer =~ ^[Yy]$ ]]; then
+    "$SCRIPT_DIR/install_envs.sh"
+  fi
+fi
