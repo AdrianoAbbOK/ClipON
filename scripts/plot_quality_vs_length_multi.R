@@ -33,7 +33,7 @@ data_list <- lapply(input_files, function(f) {
 df <- do.call(rbind, data_list)
 
 p <- ggplot(df, aes(x = length, y = mean_quality, color = group, shape = group)) +
-  geom_point(alpha = 0.4) +
+  geom_point(size = 0.05, alpha = 1) +
   labs(x = "Read length", y = "Mean quality score", color = "Group", shape = "Group") +
   theme_minimal()
 
