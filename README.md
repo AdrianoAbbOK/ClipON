@@ -95,6 +95,15 @@ Si alguno de los archivos de `envs/` cambia y el entorno ya existe, reconstrúya
 conda env update -f <archivo>.yml
 ```
 
+Después de instalar los entornos, verifique su funcionamiento con:
+
+```bash
+./scripts/test_envs.sh
+```
+
+Este script comprueba que `cutadapt`, `qiime` y `minimap2` estén disponibles en los
+entornos configurados.
+
 Active cada entorno solo la primera vez para instalarlo. El script `run_clipon_pipeline.sh` se encarga de activar el entorno adecuado en cada etapa, por lo que puede ejecutarse sin activar nada manualmente. Si desea ejecutar las etapas por separado, active el entorno correspondiente de forma manual. El entorno `clipon-qiime` también se reutiliza para el módulo **Classifier** y contiene `msmtp` para habilitar las notificaciones por correo.
 
 
