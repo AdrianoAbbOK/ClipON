@@ -44,10 +44,9 @@ for carpeta in "$BASE_DIR"/*; do
     > "$archivo_salida"
 
     # Unificar los archivos .fasta dentro de la carpeta y modificar los IDs
-    for fasta in "$carpeta"/*consensus.fasta; do
-      if [ -f "$fasta" ]; then
-        awk -v id="$identificador" '/^>/ {print $0 "_" id} !/^>/ {print $0}' "$fasta" >> "$archivo_salida"
-      fi
+    for fasta in "$carpeta"/consensus_reference_*.fasta; do
+      [ -f "$fasta" ] || continue
+      awk -v id="$identificador" '/^>/ {print $0 "_" id} !/^>/ {print $0}' "$fasta" >> "$archivo_salida"
     done
 
     # Verificar si el archivo individual no está vacío
