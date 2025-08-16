@@ -337,5 +337,11 @@ else
     echo "Rscript no encontrado; omitiendo la generación del gráfico de taxones. Instale R, por ejemplo: 'sudo apt install r-base'."
 fi
 
+print_section "Lecturas por especie"
+python3 scripts/collapse_reads_by_species.py \
+    "$UNIFIED_DIR/MaxAc_5/taxonomy_with_sample.tsv" \
+    | tee "$UNIFIED_DIR/MaxAc_5/reads_per_species.tsv"
+echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/MaxAc_5"
+
 echo "Pipeline completado. Resultados en: $WORK_DIR"
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
