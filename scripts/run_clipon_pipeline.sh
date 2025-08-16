@@ -24,8 +24,8 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-INPUT_DIR="$1"
-WORK_DIR="$2"
+INPUT_DIR="${1%/}"
+WORK_DIR="${2%/}"
 
 # Configuración opcional para el recorte
 SKIP_TRIM="${SKIP_TRIM:-0}"
@@ -103,6 +103,12 @@ fi
 
 run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
 run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
+
+if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
+    echo "No se creó el archivo maestro de consensos. Abortando pipeline."
+    exit 1
+fi
+
 run_step 6 clipon-qiime classify_reads
 run_step 7 clipon-qiime bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 

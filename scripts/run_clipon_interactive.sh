@@ -31,6 +31,7 @@ if [[ $run_mode =~ ^[Rr]$ ]]; then
     MODE="resume"
     while true; do
         read -rp "Ingrese el directorio de trabajo existente: " WORK_DIR
+        WORK_DIR="${WORK_DIR%/}"
         if [ ! -d "$WORK_DIR" ]; then
             echo "El directorio '$WORK_DIR' no existe o no es accesible. Intente nuevamente."
             continue
@@ -47,6 +48,7 @@ fi
 
 while true; do
     read -rp "Ingrese el directorio que contiene los archivos FASTQ: " INPUT_DIR
+    INPUT_DIR="${INPUT_DIR%/}"
     if [ ! -d "$INPUT_DIR" ]; then
         echo "El directorio '$INPUT_DIR' no existe o no es accesible. Intente nuevamente."
         continue
@@ -63,6 +65,7 @@ done
 
 if [ "$MODE" = "new" ]; then
     read -rp "Ingrese el directorio de trabajo donde se guardarán los resultados: " WORK_DIR
+    WORK_DIR="${WORK_DIR%/}"
     mkdir -p "$WORK_DIR"
 fi
 
