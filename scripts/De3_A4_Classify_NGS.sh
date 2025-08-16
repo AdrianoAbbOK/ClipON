@@ -55,7 +55,7 @@ qiime feature-classifier classify-consensus-blast \
     --p-num-threads 5 \
     --p-perc-identity 0.8 \
     --p-query-cov 0.8 \
-    --p-maxaccepts 5 \
+    --p-maxaccepts 1 \
     --p-min-consensus 0.51 \
     --o-classification "$output_dir/taxonomy.qza" \
     --o-search-results "$output_dir/search_results.qza"
