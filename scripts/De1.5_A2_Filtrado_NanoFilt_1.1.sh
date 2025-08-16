@@ -21,6 +21,11 @@ input_dir="${INPUT_DIR:-$1}"
 output_dir="${OUTPUT_DIR:-$2}"
 log_file="${LOG_FILE:-$3}"
 
+# Parámetros de filtrado con valores por defecto
+MIN_LEN="${MIN_LEN:-650}"
+MAX_LEN="${MAX_LEN:-750}"
+MIN_QUAL="${MIN_QUAL:-10}"
+
 if [ -z "$input_dir" ] || [ -z "$output_dir" ] || [ -z "$log_file" ]; then
     echo "Uso: INPUT_DIR=<dir entrada> OUTPUT_DIR=<dir salida> LOG_FILE=<archivo log> $0"
     echo "   o: $0 <dir entrada> <dir salida> <archivo log>"
@@ -40,8 +45,8 @@ for file in "$input_dir"/*.fastq; do
 
     # Ejecutar NanoFilt y guardar en formato FASTQ
     echo "Filtrando $file..." >> "$log_file"
-    output_file="$output_dir/${base_name}_Filt650_750_Q10.fastq"
-    cat "$file" | NanoFilt -l 650 --maxlength 750 -q 10 > "$output_file" 2>> "$log_file"
+    output_file="$output_dir/${base_name}_Filt${MIN_LEN}_${MAX_LEN}_Q${MIN_QUAL}.fastq"
+    cat "$file" | NanoFilt -l "$MIN_LEN" --maxlength "$MAX_LEN" -q "$MIN_QUAL" > "$output_file" 2>> "$log_file"
 
     # Verificar si el proceso fue exitoso
     if [ $? -eq 0 ]; then
