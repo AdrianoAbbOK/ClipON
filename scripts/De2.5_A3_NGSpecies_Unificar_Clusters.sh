@@ -33,8 +33,8 @@ for carpeta in "$BASE_DIR"/*; do
     # Extraer el nombre de la carpeta
     nombre_carpeta=$(basename "$carpeta")
 
-    # Extraer la parte entre el primer y segundo "_"
-    identificador=$(echo "$nombre_carpeta" | cut -d'_' -f2)
+    # Usar el nombre completo de la carpeta como identificador
+    identificador="$nombre_carpeta"
 
     # Archivo de salida individual
     archivo_salida="$DIR_SALIDA/consensos_${identificador}.fasta"
