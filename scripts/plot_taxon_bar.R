@@ -23,7 +23,10 @@ data <- read_tsv(input_file, show_col_types = FALSE)
 
 # Asegurarse de que la columna Reads sea numérica y eliminar filas vacías
 plot_data <- data %>%
-  mutate(Reads = suppressWarnings(as.numeric(Reads))) %>%
+  mutate(
+    Reads = suppressWarnings(as.numeric(Reads)),
+    Taxon = if_else(is.na(Taxon) | Taxon == "", "Unassigned", Taxon)
+  ) %>%
   select(Sample, Taxon, Reads) %>%
   filter(!is.na(Reads) & Reads > 0) %>%
   group_by(Sample, Taxon) %>%
