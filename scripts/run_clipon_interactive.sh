@@ -185,6 +185,8 @@ classify_reads() {
         echo "Advertencia: BLAST_DB o TAXONOMY_DB no están definidos. Omitiendo clasificación."
         return 0
     fi
+    NUM_THREADS="$NUM_THREADS" PERC_ID="$PERC_ID" QUERY_COV="$QUERY_COV" \
+    MAX_ACCEPTS="$MAX_ACCEPTS" MIN_CONSENSUS="$MIN_CONSENSUS" \
     bash scripts/De3_A4_Classify_NGS.sh \
         "$UNIFIED_DIR/consensos_todos.fasta" \
         "$UNIFIED_DIR" \
@@ -295,6 +297,39 @@ run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scr
 if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     echo "No se creó el archivo maestro de consensos. Abortando pipeline."
     exit 1
+fi
+
+# Configuración de parámetros para la clasificación BLAST
+DEFAULT_NUM_THREADS=5
+DEFAULT_PERC_ID=0.8
+DEFAULT_QUERY_COV=0.8
+DEFAULT_MAX_ACCEPTS=1
+DEFAULT_MIN_CONSENSUS=0.51
+
+echo "Parámetros de clasificación BLAST:"
+echo "  Número de hilos (--p-num-threads): $DEFAULT_NUM_THREADS"
+echo "  Identidad mínima (--p-perc-identity): $DEFAULT_PERC_ID"
+echo "  Cobertura de consulta (--p-query-cov): $DEFAULT_QUERY_COV"
+echo "  Máximos aceptados (--p-maxaccepts): $DEFAULT_MAX_ACCEPTS"
+echo "  Consenso mínimo (--p-min-consensus): $DEFAULT_MIN_CONSENSUS"
+read -p "¿Desea modificar estos valores? (y/n) " modify_class
+if [[ $modify_class =~ ^[Yy]$ ]]; then
+    read -p "Número de hilos [${DEFAULT_NUM_THREADS}]: " NUM_THREADS
+    NUM_THREADS=${NUM_THREADS:-$DEFAULT_NUM_THREADS}
+    read -p "Identidad mínima [${DEFAULT_PERC_ID}]: " PERC_ID
+    PERC_ID=${PERC_ID:-$DEFAULT_PERC_ID}
+    read -p "Cobertura de consulta [${DEFAULT_QUERY_COV}]: " QUERY_COV
+    QUERY_COV=${QUERY_COV:-$DEFAULT_QUERY_COV}
+    read -p "Máximos aceptados [${DEFAULT_MAX_ACCEPTS}]: " MAX_ACCEPTS
+    MAX_ACCEPTS=${MAX_ACCEPTS:-$DEFAULT_MAX_ACCEPTS}
+    read -p "Consenso mínimo [${DEFAULT_MIN_CONSENSUS}]: " MIN_CONSENSUS
+    MIN_CONSENSUS=${MIN_CONSENSUS:-$DEFAULT_MIN_CONSENSUS}
+else
+    NUM_THREADS=$DEFAULT_NUM_THREADS
+    PERC_ID=$DEFAULT_PERC_ID
+    QUERY_COV=$DEFAULT_QUERY_COV
+    MAX_ACCEPTS=$DEFAULT_MAX_ACCEPTS
+    MIN_CONSENSUS=$DEFAULT_MIN_CONSENSUS
 fi
 
 print_section "Paso 6: Clasificación taxonómica"
