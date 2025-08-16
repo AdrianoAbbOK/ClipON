@@ -661,7 +661,7 @@ dependencies:
 - readline=8.2
 - referencing=0.36.2
 - requests=2.32.4
-- rescript=2025.10.0.dev0
+- rescript=2025.7.0
 - rfc3339-validator=0.1.4
 - rfc3986=2.0.0
 - rfc3986-validator=0.1.1
