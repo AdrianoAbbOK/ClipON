@@ -68,7 +68,7 @@ if [ "$MODE" = "new" ]; then
     WORK_DIR="${WORK_DIR%/}"
     mkdir -p "$WORK_DIR"
 fi
-
+echo "========================================================="
 # Paso opcional de recorte de secuencias
 read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
 DEFAULT_TRIM_FRONT=0
@@ -91,7 +91,7 @@ else
     TRIM_FRONT=$DEFAULT_TRIM_FRONT
     TRIM_BACK=$DEFAULT_TRIM_BACK
 fi
-
+echo "========================================================="
 # Solicitar rutas para bases de datos necesarias
 while true; do
     read -rp "Ingrese la ruta al archivo de base de datos BLAST (.qza): " BLAST_DB
@@ -128,12 +128,13 @@ else
 fi
 echo "  Base de datos BLAST: $BLAST_DB"
 echo "  Base de datos de taxonomía: $TAXONOMY_DB"
+echo "========================================================="
 read -rp "¿Continuar con la ejecución del pipeline? (y/n) " go
 if [[ ! $go =~ ^[Yy]$ ]]; then
     echo "Operación cancelada por el usuario."
     exit 0
 fi
-
+echo "========================================================="
 echo "Iniciando pipeline..."
 
 source "$(conda info --base)/etc/profile.d/conda.sh"
