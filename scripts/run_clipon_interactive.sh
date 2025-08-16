@@ -280,6 +280,10 @@ else
     echo "Gráfico de calidad vs longitud: $PLOT_FILE"
 fi
 
+echo "El gráfico se encuentra en: $PLOT_FILE"
+read -rp "Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: " RESP
+[[ $RESP =~ ^[Ss]$ ]] || { echo "Pipeline abortado."; exit 0; }
+
 print_section "Paso 4: Clustering de NGSpecies"
 run_step 4 clipon-ngs \
     M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
