@@ -34,6 +34,12 @@ for env in "${!ENV_CHECKS[@]}"; do
     else
       echo "  - Falló al ejecutar '$cmd'"
     fi
+    if [[ "$env" == "clipon-prep" ]]; then
+      if ! conda run -n clipon-prep \
+        Rscript -e "quit(status = !all(c('ggplot2','readr') %in% rownames(installed.packages())))" >/dev/null 2>&1; then
+        echo "Instale los paquetes de R necesarios (ggplot2, readr) en el entorno clipon-prep."
+      fi
+    fi
   else
     echo "  - Entorno no encontrado"
     missing_envs+=("$env")
