@@ -1,0 +1,22 @@
+name: clipon-ngs
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - minimap2=2.30
+  - medaka=2.0.1
+  - racon=1.5.0
+  - spoa=4.*
+  - samtools=1.22
+  - mappy=2.30
+  - pyabpoa=1.5.4
+  - pyspoa=0.2.1
+  - pysam=0.23.3
+  - pytorch=2.3.1
+  - r-base
+  - r-dplyr
+  - r-ggplot2
+  - pip
+  - pip:
+      - ngspeciesid==0.3.1
