@@ -13,6 +13,12 @@ prompt_param() {
     echo "$friendly: $value"
 }
 
+print_section() {
+    echo "========================================================="
+    echo "$1"
+    echo "========================================================="
+}
+
 # Script interactivo para ejecutar el pipeline de ClipON paso a paso
 # Nota: la extracción de longitudes y calidades por lectura ya se realiza con
 # scripts/collect_read_stats.py
@@ -81,7 +87,7 @@ if [ "$MODE" = "new" ]; then
     mkdir -p "$WORK_DIR"
 fi
 
-# Paso opcional de recorte de secuencias
+print_section "Paso 2: Recorte de secuencias"
 read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
 DEFAULT_TRIM_FRONT=0
 DEFAULT_TRIM_BACK=0
@@ -95,23 +101,21 @@ else
     TRIM_BACK=$DEFAULT_TRIM_BACK
 fi
 
-# Parámetros de filtrado con NanoFilt
+print_section "Paso 3: Filtrado con NanoFilt"
 DEFAULT_MIN_LEN=650
 DEFAULT_MAX_LEN=750
 DEFAULT_MIN_QUAL=10
-echo "Parámetros de filtrado:"
 prompt_param MIN_LEN "  Longitud mínima" "$DEFAULT_MIN_LEN"
 prompt_param MAX_LEN "  Longitud máxima" "$DEFAULT_MAX_LEN"
 prompt_param MIN_QUAL "  Calidad mínima" "$DEFAULT_MIN_QUAL"
 
-# Parámetros de NGSpeciesID
+print_section "Paso 4: Clustering de NGSpecies"
 DEFAULT_M_LEN=700
 DEFAULT_SUPPORT=150
 DEFAULT_THREADS=16
 DEFAULT_QUAL=10
 DEFAULT_RC_ID=0.98
 DEFAULT_ABUND_RATIO=0.01
-echo "Parámetros de NGSpeciesID:"
 prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
 prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
 prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
@@ -119,13 +123,12 @@ prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
 prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
 prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
 
-# Parámetros de clasificación BLAST
+print_section "Paso 6: Clasificación taxonómica"
 DEFAULT_NUM_THREADS=5
 DEFAULT_PERC_ID=0.8
 DEFAULT_QUERY_COV=0.8
 DEFAULT_MAX_ACCEPTS=1
 DEFAULT_MIN_CONSENSUS=0.51
-echo "Parámetros de clasificación BLAST:"
 prompt_param NUM_THREADS "  Número de hilos (--p-num-threads)" "$DEFAULT_NUM_THREADS"
 prompt_param PERC_ID "  Identidad mínima (--p-perc-identity)" "$DEFAULT_PERC_ID"
 prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY_COV"
@@ -216,12 +219,6 @@ run_step() {
     conda activate "$env"
     eval "$cmd"
     touch "$WORK_DIR/.step${step}_done"
-}
-
-print_section() {
-    echo "========================================================="
-    echo "$1"
-    echo "========================================================="
 }
 
 trim_reads() {
