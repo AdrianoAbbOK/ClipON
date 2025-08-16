@@ -10,3 +10,7 @@ dependencies:
   - pigz=2.8
   - pandas=2.2.2
   - matplotlib=3.8.4
+  - r-base
+  - r-ggplot2
+  - r-readr
+  - r-rcolorbrewer
