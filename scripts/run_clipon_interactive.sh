@@ -324,7 +324,7 @@ classify_reads() {
         "$BLAST_DB" \
         "$TAXONOMY_DB" \
         "$@"
-    echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
+    echo "Clasificación finalizada. Revise $UNIFIED_DIR/Results"
 }
 
 run_step 1 clipon-prep "Paso 1: Procesamiento inicial de FASTQ" "" \
@@ -395,14 +395,14 @@ run_step 6 clipon-qiime "Paso 6: Clasificación taxonómica" "$CLASSIFY_EXTRA_AR
 run_step 7 clipon-qiime "Paso 7: Exportación de clasificación" "" \
     bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 
-echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
+echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
 
 print_section "Gráfico de taxones"
 TAX_PLOT_FILE="N/A"
 if command -v python >/dev/null 2>&1; then
     TAX_PLOT_FILE=$(python scripts/plot_taxon_bar.py \
-        "$UNIFIED_DIR/MaxAc_5/taxonomy_with_sample.tsv" \
-        "$UNIFIED_DIR/MaxAc_5/taxon_stacked_bar.png" 2>&1 | \
+        "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
+        "$UNIFIED_DIR/Results/taxon_stacked_bar.png" 2>&1 | \
         tee -a "$WORK_DIR/taxon_plot.log" | tail -n 1) || {
             echo "Fallo en python: revisar dependencias" >> "$WORK_DIR/taxon_plot.log"
             TAX_PLOT_FILE="N/A"
@@ -428,9 +428,9 @@ fi
 
 print_section "Lecturas por especie"
 python3 scripts/collapse_reads_by_species.py \
-    "$UNIFIED_DIR/MaxAc_5/taxonomy_with_sample.tsv" \
-    | tee "$UNIFIED_DIR/MaxAc_5/reads_per_species.tsv"
-echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/MaxAc_5"
+    "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
+    | tee "$UNIFIED_DIR/Results/reads_per_species.tsv"
+echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/Results"
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
