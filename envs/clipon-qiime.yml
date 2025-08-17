@@ -90,8 +90,6 @@ dependencies:
 - cached_property=1.5.2
 - cairo=1.18.0
 - certifi=2025.7.14
-- chafa
-- eog
 - cffi=1.17.1
 - chardet=5.2.0
 - charset-normalizer=3.4.2

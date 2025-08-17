@@ -50,9 +50,8 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
    barras de taxones)
 - R (opcional, necesario para generar el gráfico de calidad vs longitud;
    puede instalarse con `sudo apt install r-base`)
-- chafa (opcional, para visualizar gráficos PNG en la terminal durante la
-  ejecución interactiva)
-- eog (opcional, para abrir gráficos PNG en un entorno gráfico)
+- eog (opcional, instale con `apt install eog` para abrir gráficos PNG en un
+  entorno gráfico)
 - msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para
   enviar notificaciones por correo)
 
@@ -186,7 +185,7 @@ directorio.  Activará los entornos Conda necesarios automáticamente.
 
 ### Asistente interactivo con reanudación
 El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
-También se incluye `eog` para abrir las imágenes en un entorno gráfico.
+Intentará abrir las imágenes con `eog` si está instalado en el sistema.
 
 ```bash
 ./scripts/run_clipon_interactive.sh
