@@ -181,6 +181,15 @@ Para visualizar los gráficos generados directamente en la terminal, instale la 
 
 Si se elige reanudar, se solicitará el directorio de trabajo existente; podrá sobrescribirlo o copiarlo a un nuevo directorio. Luego se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado. A continuación, seleccione el paso desde el cual continuar; la elección se guarda en `resume_config.sh` y exporta la variable `RESUME_STEP` antes de llamar al pipeline.
 
+Tras el resumen de configuración, el asistente permite ingresar una línea con parámetros adicionales que se añadirán a los comandos de los scripts internos. Esta opción ofrece flexibilidad para ajustar hilos, filtros u otros valores sin modificar directamente los scripts.
+
+```bash
+./scripts/run_clipon_interactive.sh
+# ...
+# Parámetros extra para los scripts (opcional):
+--threads 8 --max-accepts 5
+```
+
 En un procesamiento nuevo, si el directorio de salida ya existe y contiene archivos, se pedirá confirmación antes de sobrescribirlo.
 
 ### Formato del Importing Manifest
