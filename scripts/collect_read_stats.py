@@ -2,17 +2,23 @@
 """Collect basic read statistics from a FASTQ file.
 
 Outputs a TSV with per-read length and mean quality score.
-Usage: python scripts/collect_read_stats.py <fastq> <output_tsv>
+Usage: collect_read_stats.py FASTQ OUTPUT_TSV
 """
-import sys
+import argparse
 import csv
+import sys
 
-if len(sys.argv) != 3:
-    print("Usage: collect_read_stats.py <fastq> <output_tsv>", file=sys.stderr)
-    sys.exit(1)
+parser = argparse.ArgumentParser(
+    description="Collect basic read statistics from a FASTQ file."
+)
+parser.add_argument("fastq", help="Path to the input FASTQ file.")
+parser.add_argument(
+    "output_tsv", help="Path to write the per-read statistics in TSV format."
+)
+args = parser.parse_args()
 
-fastq_path = sys.argv[1]
-out_tsv = sys.argv[2]
+fastq_path = args.fastq
+out_tsv = args.output_tsv
 
 try:
     fh_fastq = open(fastq_path)
