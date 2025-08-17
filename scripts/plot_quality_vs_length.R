@@ -17,7 +17,7 @@ suppressPackageStartupMessages({
 })
 
 cleaned <- readr::read_tsv(file_cleaned, show_col_types = FALSE)
-cleaned$dataset <- "cleaned"
+cleaned$dataset <- "raw"
 
 filtered <- readr::read_tsv(file_filtered, show_col_types = FALSE)
 filtered$dataset <- "filtered"
@@ -27,6 +27,7 @@ df <- rbind(cleaned, filtered)
 p <- ggplot(df, aes(x = length, y = mean_quality, color = dataset)) +
   geom_point(alpha = 0.4) +
   labs(x = "Read length", y = "Mean quality score", color = "Dataset") +
+  scale_color_manual(values = c(raw = "#1f77b4", filtered = "#ff7f0e")) +
   theme_minimal()
 
 ggsave(output_png, plot = p, width = 6, height = 4, units = "in")
