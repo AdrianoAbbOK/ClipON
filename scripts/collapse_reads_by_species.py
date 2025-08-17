@@ -17,6 +17,52 @@ from collections import defaultdict
 from pathlib import Path
 
 
+def format_taxon(taxon: str) -> str:
+    """Return a readable representation of a taxon string.
+
+    Parameters
+    ----------
+    taxon:
+        Taxonomic annotation where ranks are separated by ``;`` or spaces and
+        encoded as ``r__name`` (e.g. ``g__Escherichia``).
+
+    Returns
+    -------
+    str
+        A simplified representation using genus and species when available.
+    """
+
+    parts = taxon.split(";") if ";" in taxon else taxon.split()
+    parts = [p.strip() for p in parts if p.strip()]
+    ranks: dict[str, str] = {}
+    rank_map = {
+        "k": "kingdom",
+        "p": "phylum",
+        "c": "class",
+        "o": "order",
+        "f": "family",
+        "g": "genus",
+        "s": "species",
+    }
+
+    last_name = taxon.strip()
+    last_rank = "unknown"
+    for part in parts:
+        if "__" in part:
+            rank_code, name = part.split("__", 1)
+            ranks[rank_code] = name
+            last_name = name
+            last_rank = rank_map.get(rank_code, rank_code)
+
+    genus = ranks.get("g")
+    species = ranks.get("s")
+    if genus and species:
+        return f"*{genus.capitalize()} {species.lower()}*"
+    if genus:
+        return f"*{genus.capitalize()}* (genus)"
+    return f"{last_name} ({last_rank})"
+
+
 def main() -> None:
     if len(sys.argv) != 2:
         print(
@@ -35,7 +81,7 @@ def main() -> None:
         reader = csv.DictReader(fin, delimiter="\t")
         for row in reader:
             sample = row["Sample"]
-            species = row["Taxon"]
+            species = format_taxon(row["Taxon"])
             try:
                 reads = int(row["Reads"])
             except ValueError:
