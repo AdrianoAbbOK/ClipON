@@ -29,29 +29,33 @@ suppressPackageStartupMessages({
   library(readr)
 })
 
-# Read each TSV and add a group column based on filename
-get_group <- function(path) {
+# Extract sample and dataset information from the filename
+parse_file_info <- function(path) {
   fname <- basename(path)
+  dataset <- sub("^.*_(raw|processed|filtered)_stats\\.tsv$", "\\1", fname)
   sample <- sub("_(raw|processed|filtered)_stats\\.tsv$", "", fname)
   sample <- sub("^cleaned_", "", sample)
   sample <- sub("_trimmed$", "", sample)
   if (!is.null(map_sample) && sample %in% names(map_sample)) {
     sample <- map_sample[[sample]]
   }
-  sample
+  list(sample = sample, dataset = dataset)
 }
 
+# Read each TSV and add sample and dataset columns based on filename
 data_list <- lapply(input_files, function(f) {
   df <- readr::read_tsv(f, show_col_types = FALSE)
-  df$group <- get_group(f)
+  info <- parse_file_info(f)
+  df$sample <- info$sample
+  df$dataset <- info$dataset
   df
 })
 
 df <- do.call(rbind, data_list)
 
-p <- ggplot(df, aes(x = length, y = mean_quality, color = group, shape = group)) +
+p <- ggplot(df, aes(x = length, y = mean_quality, color = sample, shape = dataset)) +
   geom_point(size = 0.05, alpha = 1) +
-  labs(x = "Read length", y = "Mean quality score", color = "Group", shape = "Group") +
+  labs(x = "Read length", y = "Mean quality score", color = "Sample", shape = "Dataset") +
   theme_minimal()
 
 ggsave(output_png, plot = p, width = 6, height = 4, units = "in")
