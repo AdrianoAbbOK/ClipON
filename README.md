@@ -193,6 +193,11 @@ Puede recibir `--metadata <archivo>`; si no se proporciona, pedirá la ruta dura
 después de indicar los archivos FASTQ.
 Intentará abrir las imágenes con `eog` si está instalado en el sistema.
 
+Durante la configuración se consultará qué método de clusterización utilizar (`ngspecies` o `vsearch`).
+En caso de elegir **VSearch**, se solicitarán los parámetros `cluster_identity`,
+`blast_identity` y `maxaccepts`, que se exportarán como variables de entorno al
+invocar el pipeline.
+
 ```bash
 ./scripts/run_clipon_interactive.sh
 ```
