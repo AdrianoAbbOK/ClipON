@@ -470,7 +470,6 @@ if command -v python >/dev/null 2>&1; then
             TAX_PLOT_FILE="N/A"
         }
     if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
-
         if command -v eog >/dev/null 2>&1; then
             # Abrir el gráfico de taxones en una ventana nueva
             eog "$TAX_PLOT_FILE" >/dev/null 2>&1 &
@@ -478,15 +477,15 @@ if command -v python >/dev/null 2>&1; then
             # Visualizar el gráfico de taxones en la terminal
             chafa "$TAX_PLOT_FILE" | less -R
         else
-            echo "Instale 'eog' o 'chafa' para visualizar el gráfico. Archivo: $TAX_PLOT_FILE"
+            echo "Instale 'eog' o 'chafa' para visualizar el gráfico."
         fi
-
     else
-        echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
+        echo "No se pudo generar el gráfico de taxones. Revise $WORK_DIR/taxon_plot.log"
     fi
 else
     echo "Python no encontrado; omitiendo la generación del gráfico de taxones."
 fi
+echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
 
 print_section "Lecturas por especie"
 python3 scripts/collapse_reads_by_species.py \
