@@ -42,8 +42,9 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
    puede instalarse con `sudo apt install r-base`)
 - chafa (opcional, para visualizar gráficos PNG en la terminal durante la
   ejecución interactiva)
+- eog (opcional, para abrir gráficos PNG en un entorno gráfico)
 - msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para
-   enviar notificaciones por correo)
+  enviar notificaciones por correo)
 
 ## Ejemplos de ejecución
 
@@ -173,8 +174,7 @@ directorio.  Activará los entornos Conda necesarios automáticamente.
 
 ### Asistente interactivo con reanudación
 El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
-Para visualizar los gráficos generados directamente en la terminal, instale la utilidad `chafa`. Si cuenta con un entorno gráfico,
-el asistente intentará abrir los PNG en una ventana nueva utilizando `eog`.
+También se incluye `eog` para abrir las imágenes en un entorno gráfico.
 
 ```bash
 ./scripts/run_clipon_interactive.sh

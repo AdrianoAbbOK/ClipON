@@ -15,6 +15,7 @@ dependencies:
   - pysam=0.23.3
   - pytorch=2.3.1
   - chafa
+  - eog
   - r-base
   - r-dplyr
   - r-ggplot2
