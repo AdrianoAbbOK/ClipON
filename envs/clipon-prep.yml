@@ -11,6 +11,7 @@ dependencies:
   - pandas=2.2.2
   - matplotlib=3.8.4
   - chafa
+  - eog
   - r-base
   - r-ggplot2
   - r-readr
