@@ -16,6 +16,7 @@ and their mapping is saved to ``<output>.taxon_map.tsv``.
 from __future__ import annotations
 
 import argparse
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -91,7 +92,17 @@ def main() -> None:
     ax.set_ylabel("Proportion of reads")
     xlabel = "Sample code" if args.code_samples else "Sample"
     ax.set_xlabel(xlabel)
-    ax.legend(title="Taxon code (see TSV)")
+
+    n_taxa = len(taxa)
+    ncol = min(n_taxa, 3)
+    nrows = math.ceil(n_taxa / ncol)
+    y_anchor = -0.15 * nrows
+    ax.legend(
+        title="Taxon code (see TSV)",
+        loc="upper center",
+        bbox_to_anchor=(0.5, y_anchor),
+        ncol=ncol,
+    )
     plt.tight_layout()
     plt.savefig(out_path, dpi=300)
     print(out_path.resolve())
