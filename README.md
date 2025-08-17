@@ -20,6 +20,10 @@ Ejecuta todo el flujo con:
 ./scripts/run_clipon_pipeline.sh [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
 
+Defina la variable de entorno `CLUSTER_METHOD` para elegir el método de
+clustering (`ngspecies` o `vsearch`). El valor predeterminado es
+`ngspecies`.
+
 Para reemplazar los nombres de los archivos FASTQ por identificadores de
 experimento, proporcione un archivo de metadata con columnas `fastq` y
 `experiment`:
