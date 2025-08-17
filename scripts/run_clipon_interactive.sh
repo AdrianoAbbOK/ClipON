@@ -282,7 +282,7 @@ if command -v Rscript >/dev/null 2>&1; then
         }
     echo "Gráfico de calidad vs longitud: $PLOT_FILE"
     if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
-        Rscript -e "archivo <- '$PLOT_FILE'; if (.Platform\$OS.type=='unix') system2('xdg-open', archivo, wait=TRUE) else if (.Platform\$OS.type=='windows') shell.exec(archivo) else system2('open', archivo, wait=TRUE)"
+        Rscript -e "archivo <- '$PLOT_FILE'; if (.Platform\$OS.type=='unix') system2('less', archivo, wait=TRUE) else if (.Platform\$OS.type=='windows') shell.exec(archivo) else system2('open', archivo, wait=TRUE)"
     else
         echo "No se pudo abrir el gráfico automáticamente."
     fi
@@ -330,7 +330,7 @@ if command -v python >/dev/null 2>&1; then
             TAX_PLOT_FILE="N/A"
         }
     if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
-        xdg-open "$TAX_PLOT_FILE"
+        less "$TAX_PLOT_FILE"
     else
         echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
     fi
