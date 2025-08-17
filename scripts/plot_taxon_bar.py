@@ -9,7 +9,8 @@ The input TSV must contain at least the columns Sample, Taxon and Reads.
 Empty or missing taxon names are replaced with "Unassigned" to ensure each
 sample is represented. When ``--code-samples`` is provided, samples are
 replaced by sequential codes (S1, S2, ...) and the mapping is written to
-``<output>.sample_map.tsv``.
+``<output>.sample_map.tsv``. Taxa are always replaced by codes (T1, T2, ...)
+and their mapping is saved to ``<output>.taxon_map.tsv``.
 """
 
 from __future__ import annotations
@@ -66,6 +67,13 @@ def main() -> None:
         lambda x: x / x.sum()
     )
 
+    taxa = sorted(grouped["Taxon"].unique())
+    taxon_map = {taxon: f"T{i+1}" for i, taxon in enumerate(taxa)}
+    map_df = pd.DataFrame({"code": list(taxon_map.values()), "taxon": taxa})
+    map_path = out_path.with_suffix(out_path.suffix + ".taxon_map.tsv")
+    map_df.to_csv(map_path, sep="\t", index=False)
+    grouped["Taxon"] = grouped["Taxon"].map(taxon_map)
+
     pivot = grouped.pivot(index="Sample", columns="Taxon", values="Percent")
     pivot = pivot.fillna(0)
 
@@ -73,6 +81,7 @@ def main() -> None:
     ax.set_ylabel("Proportion of reads")
     xlabel = "Sample code" if args.code_samples else "Sample"
     ax.set_xlabel(xlabel)
+    ax.legend(title="Taxon code (see TSV)")
     plt.tight_layout()
     plt.savefig(out_path, dpi=300)
     print(out_path.resolve())
