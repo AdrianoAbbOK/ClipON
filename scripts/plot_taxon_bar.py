@@ -16,7 +16,6 @@ to codes (T1, T2, ...) is saved to ``<output>.taxon_map.tsv`` for reference.
 from __future__ import annotations
 
 import argparse
-import math
 from pathlib import Path
 
 import pandas as pd
@@ -118,16 +117,7 @@ def main() -> None:
     xlabel = "Sample code" if args.code_samples else "Sample"
     ax.set_xlabel(xlabel)
 
-    n_taxa = len(taxa)
-    ncol = min(n_taxa, 3)
-    nrows = math.ceil(n_taxa / ncol)
-    y_anchor = -0.15 * nrows
-    ax.legend(
-        title="Taxon",
-        loc="upper center",
-        bbox_to_anchor=(0.5, y_anchor),
-        ncol=ncol,
-    )
+    ax.legend(title="Taxon")
     plt.tight_layout()
     plt.savefig(out_path, dpi=300)
     print(out_path.resolve())
