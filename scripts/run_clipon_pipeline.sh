@@ -121,7 +121,8 @@ TAX_PLOT_FILE="N/A"
 if command -v python >/dev/null 2>&1; then
     TAX_PLOT_FILE=$(python scripts/plot_taxon_bar.py \
         "$UNIFIED_DIR/MaxAc_5/taxonomy_with_sample.tsv" \
-        "$UNIFIED_DIR/MaxAc_5/taxon_stacked_bar.png" 2>&1 | \
+        "$UNIFIED_DIR/MaxAc_5/taxon_stacked_bar.png" \
+        --code-samples 2>&1 | \
         tee -a "$WORK_DIR/taxon_plot.log" | tail -n 1) || {
             echo "Fallo en python: revisar dependencias" >> "$WORK_DIR/taxon_plot.log"
             TAX_PLOT_FILE="N/A"

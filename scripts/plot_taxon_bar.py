@@ -8,7 +8,7 @@ Usage:
 The input TSV must contain at least the columns Sample, Taxon and Reads.
 Empty or missing taxon names are replaced with "Unassigned" to ensure each
 sample is represented. When ``--code-samples`` is provided, samples are
-replaced by sequential codes (S1, S2, ...) and the mapping is written to
+replaced by sequential codes (M1, M2, ...) and the mapping is written to
 ``<output>.sample_map.tsv``. Taxa are always replaced by codes (T1, T2, ...)
 and their mapping is saved to ``<output>.taxon_map.tsv``.
 """
@@ -31,7 +31,7 @@ def parse_args() -> argparse.Namespace:
         "--code-samples",
         action="store_true",
         help=(
-            "Replace sample names with codes S1, S2, ... and save mapping to "
+            "Replace sample names with codes M1, M2, ... and save mapping to "
             "<output>.sample_map.tsv"
         ),
     )
@@ -54,7 +54,7 @@ def main() -> None:
 
     if args.code_samples:
         samples = sorted(data["Sample"].unique())
-        sample_map = {sample: f"S{i+1}" for i, sample in enumerate(samples)}
+        sample_map = {sample: f"M{i+1}" for i, sample in enumerate(samples)}
         map_df = pd.DataFrame(
             {"code": list(sample_map.values()), "sample": samples}
         )

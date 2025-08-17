@@ -30,5 +30,5 @@ def test_sample_codes(tmp_path):
     map_file = tmp_path / "plot.png.sample_map.tsv"
     content = map_file.read_text().strip().splitlines()
     assert content[0] == "code\tsample"
-    assert content[1] == "S1\tA"
-    assert content[2] == "S2\tB"
+    assert content[1] == "M1\tA"
+    assert content[2] == "M2\tB"
