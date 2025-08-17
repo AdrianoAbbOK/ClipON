@@ -11,6 +11,7 @@ Usage:
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import sys
 from collections import defaultdict
@@ -63,21 +64,25 @@ def format_taxon(taxon: str) -> str:
     return f"{last_name} ({last_rank})"
 
 
-def main() -> None:
-    if len(sys.argv) != 2:
-        print(
-            "Usage: collapse_reads_by_species.py <taxonomy_with_sample.tsv>",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+def parse_args() -> Path:
+    """Return the path to the TSV file containing reads and taxonomic data."""
 
-    in_path = Path(sys.argv[1])
-    if not in_path.is_file():
-        print(f"File not found: {in_path}", file=sys.stderr)
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Collapse read counts per species for each sample."
+    )
+    parser.add_argument(
+        "tsv",
+        type=Path,
+        help="Path to the taxonomy_with_sample.tsv file",
+    )
+    return parser.parse_args().tsv
+
+
+def collapse_by_species(path: Path) -> dict[str, dict[str, int]]:
+    """Parse *path* and accumulate read counts per sample and species."""
 
     data: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    with in_path.open() as fin:
+    with path.open() as fin:
         reader = csv.DictReader(fin, delimiter="\t")
         for row in reader:
             sample = row["Sample"]
@@ -87,6 +92,11 @@ def main() -> None:
             except ValueError:
                 reads = 0
             data[sample][species] += reads
+    return data
+
+
+def print_results(data: dict[str, dict[str, int]]) -> None:
+    """Print ``data`` produced by :func:`collapse_by_species`."""
 
     for sample in sorted(data):
         species_counts = data[sample]
@@ -99,6 +109,18 @@ def main() -> None:
             proportion = (count / total_reads * 100) if total_reads else 0
             print(f"{species}\t{count}\t{proportion:.2f}")
         print()
+
+
+def main() -> None:
+    """Entry point for command-line execution."""
+
+    tsv_path = parse_args()
+    if not tsv_path.is_file():
+        print(f"File not found: {tsv_path}", file=sys.stderr)
+        sys.exit(1)
+
+    data = collapse_by_species(tsv_path)
+    print_results(data)
 
 
 if __name__ == "__main__":
