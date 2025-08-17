@@ -476,8 +476,18 @@ if [ "${RESUME_STEP:-1}" -le 3 ]; then
     fi
 
     echo "El gráfico se encuentra en: $PLOT_FILE"
-    read -rp "Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: " RESP
-    [[ $RESP =~ ^[Ss]$ ]] || { echo "Pipeline abortado."; exit 0; }
+    # Solicitar confirmación con un temporizador de 30 segundos
+    PROMPT="Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: "
+    RESP=""
+    for i in $(seq 30 -1 1); do
+        printf '\r%s (continuando automáticamente en %02ds) ' "$PROMPT" "$i"
+        read -r -t 1 -n 1 RESP && break
+    done
+    echo
+    if [[ -n "$RESP" ]] && [[ ! $RESP =~ ^[Ss]$ ]]; then
+        echo "Pipeline abortado."
+        exit 0
+    fi
 else
     echo "Omitiendo resumen de lecturas y generación del gráfico (RESUME_STEP=${RESUME_STEP:-1} > 3)."
 fi
