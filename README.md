@@ -6,7 +6,7 @@
 1. **Procesamiento inicial** – se filtran secuencias corruptas con `SeqKit`.
 2. **Recorte de cebadores** – `Cutadapt` elimina bases al inicio y fin.
 3. **Filtrado de calidad y longitud** – `NanoFilt` descarta lecturas cortas o de baja calidad.
-4. **Clustering** – `NGSpeciesID` agrupa secuencias y genera consensos.
+4. **Clustering** – por defecto, `NGSpeciesID` agrupa secuencias y genera consensos; alternativamente, use `--cluster-method vsearch` para ejecutar `VSEARCH`.
 5. **Unificación de clusters** – se combinan los consensos de distintos experimentos.
 6. **Clasificación opcional** – el script `scripts/De3_A4_Classify_NGS.sh` usa `qiime feature-classifier classify-consensus-blast` para asignar taxonomía a los consensos unificados.
 7. **Exportación de la clasificación** – `scripts/De3_A4_Export_Classification.sh` guarda `taxonomy.qza`, `search_results.qza` y genera `taxonomy_with_sample.tsv` (con columnas *Reads* y *Sample*) en `Results`. Además, crea `reads_per_species.tsv` con el número total de lecturas por especie y muestra.
@@ -17,7 +17,7 @@
 Ejecuta todo el flujo con:
 
 ```bash
-./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
+./scripts/run_clipon_pipeline.sh [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
 
 Para reemplazar los nombres de los archivos FASTQ por identificadores de
@@ -25,7 +25,7 @@ experimento, proporcione un archivo de metadata con columnas `fastq` y
 `experiment`:
 
 ```bash
-./scripts/run_clipon_pipeline.sh --metadata fastq_metadata.tsv <dir_fastq_entrada> <dir_trabajo>
+./scripts/run_clipon_pipeline.sh --metadata fastq_metadata.tsv [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
 Consulte [docs/metadata_example.md](docs/metadata_example.md) para un ejemplo de
 formato.
@@ -185,7 +185,7 @@ El wrapper `run_clipon_pipeline.sh` puede ejecutarse desde cualquier
 directorio.  Activará los entornos Conda necesarios automáticamente.
 
 ```bash
-./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
+./scripts/run_clipon_pipeline.sh [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
 
 ### Asistente interactivo con reanudación
