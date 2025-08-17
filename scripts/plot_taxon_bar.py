@@ -9,13 +9,14 @@ The input TSV must contain at least the columns Sample, Taxon and Reads.
 Empty or missing taxon names are replaced with "Unassigned" to ensure each
 sample is represented. When ``--code-samples`` is provided, samples are
 replaced by sequential codes (M1, M2, ...) and the mapping is written to
-``<output>.sample_map.tsv``. Taxa are always replaced by codes (T1, T2, ...)
-and their mapping is saved to ``<output>.taxon_map.tsv``.
+``<output>.sample_map.tsv``. Taxa are displayed using their names; a mapping
+to codes (T1, T2, ...) is saved to ``<output>.taxon_map.tsv`` for reference.
 """
 
 from __future__ import annotations
 
 import argparse
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -82,7 +83,6 @@ def main() -> None:
     map_df = pd.DataFrame({"code": list(taxon_map.values()), "taxon": taxa})
     map_path = out_path.with_suffix(out_path.suffix + ".taxon_map.tsv")
     map_df.to_csv(map_path, sep="\t", index=False)
-    grouped["Taxon"] = grouped["Taxon"].map(taxon_map)
 
     pivot = grouped.pivot(index="Sample", columns="Taxon", values="Percent")
     pivot = pivot.fillna(0)
@@ -91,7 +91,17 @@ def main() -> None:
     ax.set_ylabel("Proportion of reads")
     xlabel = "Sample code" if args.code_samples else "Sample"
     ax.set_xlabel(xlabel)
-    ax.legend(title="Taxon code (see TSV)")
+
+    n_taxa = len(taxa)
+    ncol = min(n_taxa, 3)
+    nrows = math.ceil(n_taxa / ncol)
+    y_anchor = -0.15 * nrows
+    ax.legend(
+        title="Taxon",
+        loc="upper center",
+        bbox_to_anchor=(0.5, y_anchor),
+        ncol=ncol,
+    )
     plt.tight_layout()
     plt.savefig(out_path, dpi=300)
     print(out_path.resolve())
