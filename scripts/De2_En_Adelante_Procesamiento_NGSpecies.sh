@@ -35,9 +35,9 @@ qiime feature-classifier classify-consensus-blast \
 ### EXPORTADO DE LA TABLA DE TAXONOMIA
 				qiime tools export \
         --input-path "/home/adriano_abb/Qiime/V2/Trim_NGSpecies/taxonomy.qza" \
-        --output-path "/home/adriano_abb/Qiime/V2/Trim_NGSpecies/MaxAc_5/"
+        --output-path "/home/adriano_abb/Qiime/V2/Trim_NGSpecies/Results/"
 
 ### EXPORTADO DE LA TABLA DE TAXONOMIA
 				qiime tools export \
         --input-path "/home/adriano_abb/Qiime/V2/Trim_NGSpecies/search_results.qza" \
-        --output-path "/home/adriano_abb/Qiime/V2/Trim_NGSpecies/MaxAc_5/"
+        --output-path "/home/adriano_abb/Qiime/V2/Trim_NGSpecies/Results/"

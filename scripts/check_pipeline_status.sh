@@ -25,7 +25,7 @@ MARKERS=(
     "$WORK_DIR/4_clustered/*"
     "$WORK_DIR/5_unified/consensos_todos.fasta"
     "$WORK_DIR/5_unified/taxonomy.qza"
-    "$WORK_DIR/5_unified/MaxAc_5"
+    "$WORK_DIR/5_unified/Results"
 )
 
 echo "Comprobando estado del pipeline en $WORK_DIR"
