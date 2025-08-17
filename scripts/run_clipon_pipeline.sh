@@ -43,6 +43,7 @@ SKIP_TRIM="${SKIP_TRIM:-0}"
 TRIM_FRONT="${TRIM_FRONT:-30}"
 TRIM_BACK="${TRIM_BACK:-30}"
 RESUME_STEP="${RESUME_STEP:-1}"
+CLUSTER_METHOD="${CLUSTER_METHOD:-ngspecies}"
 
 # Definir subdirectorios
 PROCESSED_DIR="$WORK_DIR/1_processed"
@@ -118,16 +119,21 @@ fi
 
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
 
-run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
-run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
+if [ "$CLUSTER_METHOD" = "ngspecies" ]; then
+    run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
+    run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
 
-if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
-    echo "No se creó el archivo maestro de consensos. Abortando pipeline."
+    if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
+        echo "No se creó el archivo maestro de consensos. Abortando pipeline."
+        exit 1
+    fi
+
+    run_step 6 clipon-qiime classify_reads
+    run_step 7 clipon-qiime METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+else
+    echo "Método de clusterización '$CLUSTER_METHOD' no soportado en run_clipon_pipeline.sh" >&2
     exit 1
 fi
-
-run_step 6 clipon-qiime classify_reads
-run_step 7 clipon-qiime METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
 
