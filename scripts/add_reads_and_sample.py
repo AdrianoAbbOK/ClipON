@@ -4,25 +4,37 @@
 Extracts the number of supporting reads and the sample code from the
 ``Feature ID`` column produced by NGSpeciesID and writes a new TSV with
 columns ``Feature ID``, ``Taxon``, ``Consensus``, ``Reads`` and ``Sample``.
-
-Usage:
-    python scripts/add_reads_and_sample.py taxonomy.tsv
-The output ``taxonomy_with_sample.tsv`` is written in the same directory.
+Sample names can optionally be replaced by experiment identifiers using a
+metadata file with columns ``fastq`` and ``experiment``.
 """
 
+import argparse
 import csv
 import pathlib
 import re
-import sys
+
+
+def load_metadata(path: str | None) -> dict[str, str]:
+    mapping: dict[str, str] = {}
+    if not path:
+        return mapping
+    with open(path) as fh:
+        reader = csv.DictReader(fh, delimiter="\t")
+        for row in reader:
+            fastq = pathlib.Path(row["fastq"]).stem
+            mapping[fastq] = row["experiment"]
+    return mapping
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
-        print("Usage: add_reads_and_sample.py <taxonomy.tsv>", file=sys.stderr)
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("taxonomy", help="Input QIIME taxonomy.tsv file")
+    parser.add_argument("--metadata", help="TSV/CSV with fastq-experiment mapping")
+    args = parser.parse_args()
 
-    in_path = pathlib.Path(sys.argv[1])
+    in_path = pathlib.Path(args.taxonomy)
     out_path = in_path.with_name("taxonomy_with_sample.tsv")
+    mapping = load_metadata(args.metadata)
 
     with in_path.open() as fin, out_path.open("w", newline="") as fout:
         reader = csv.DictReader(fin, delimiter="\t")
@@ -37,6 +49,7 @@ def main() -> None:
                 raise ValueError(f"Could not parse Feature ID: {fid}")
             reads, sample = m.groups()
             base_id = fid[: m.start()]
+            sample = mapping.get(sample, sample)
             writer.writerow(
                 {
                     "Feature ID": base_id,

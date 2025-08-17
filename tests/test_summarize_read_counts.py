@@ -67,3 +67,23 @@ def test_trimmed_files_are_aggregated(tmp_path):
     assert table["sample"]["raw"] == 5
     assert table["sample"]["processed"] == 9
     assert "sample_trimmed" not in table
+
+
+def test_metadata_mapping(tmp_path):
+    write_stats(tmp_path / "s1_raw_stats.tsv", 1)
+    write_stats(tmp_path / "s1_processed_stats.tsv", 2)
+    write_stats(tmp_path / "s1_filtered_stats.tsv", 3)
+
+    meta = tmp_path / "meta.tsv"
+    meta.write_text("fastq\texperiment\ns1\tExpA\n")
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "summarize_read_counts.py"
+    result = subprocess.run(
+        [sys.executable, str(script), str(tmp_path), "--metadata", str(meta)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    lines = result.stdout.strip().splitlines()
+    assert lines[1].startswith("ExpA")
