@@ -21,7 +21,7 @@ prompt_param() {
     local friendly="$2"
     local default="$3"
     local value
-    read -p "$friendly PREDETERMINADO = [$default]: " value
+    read -r -p "$friendly PREDETERMINADO = [$default]: " value
     value=${value:-$default}
     eval "$var_name=\"$value\""
     echo "$friendly ELEGIDO : $value"
@@ -95,6 +95,7 @@ if [ "$MODE" = "resume" ]; then
     done
     scripts/check_pipeline_status.sh "$WORK_DIR"
     # Leer RESUME_STEP desde el archivo generado por check_pipeline_status.sh
+    # shellcheck source=/dev/null
     source "$WORK_DIR/resume_config.sh"
 fi
 
@@ -314,6 +315,7 @@ fi
 echo "========================================================="
 echo "Iniciando pipeline..."
 
+# shellcheck source=/dev/null
 source "$(conda info --base)/etc/profile.d/conda.sh"
 RESUME_STEP="${RESUME_STEP:-1}"
 
@@ -406,7 +408,6 @@ if [ "${RESUME_STEP:-1}" -le 3 ]; then
                 echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
                 PLOT_FILE="N/A"
             }
-        echo "Gráfico de calidad vs longitud: $PLOT_FILE"
         if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
 
             if command -v eog >/dev/null 2>&1; then
@@ -425,7 +426,6 @@ if [ "${RESUME_STEP:-1}" -le 3 ]; then
     else
         echo "Rscript no encontrado; omitiendo la generación del gráfico. Instale R, por ejemplo: 'sudo apt install r-base'."
         PLOT_FILE="N/A"
-        echo "Gráfico de calidad vs longitud: $PLOT_FILE"
     fi
 
     echo "El gráfico se encuentra en: $PLOT_FILE"
