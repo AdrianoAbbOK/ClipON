@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "Paso 2: Recorte de secuencias (trimming)"
+
 # Chequeo si cutadapt está instalado
 if ! command -v cutadapt >/dev/null; then
     echo "Error: cutadapt no encontrado. Instálalo antes de ejecutar este script." >&2
@@ -34,7 +36,11 @@ TRIM_BACK="${TRIM_BACK:-0}"
 # RECORRER ARCHIVOS FASTQ EN EL DIRECTORIO DE ENTRADA
 for file in "$INPUT_DIR"/*.fastq; do
     filename=$(basename "$file")
-    cutadapt -u "$TRIM_FRONT" -u "-${TRIM_BACK#-}" -o "$OUTPUT_DIR/${filename%.fastq}_trimmed.fastq" "$file"
+    echo "Archivo: $filename"
+    # Mostrar solo el resumen de cutadapt
+    cutadapt -u "$TRIM_FRONT" -u "-${TRIM_BACK#-}" \
+        -o "$OUTPUT_DIR/${filename%.fastq}_trimmed.fastq" "$file" 2>&1 \
+        | grep -A 5 '=== Summary ==='
 done
 
 # INFORMAR FINALIZACIÓN
