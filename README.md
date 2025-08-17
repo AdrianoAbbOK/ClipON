@@ -180,7 +180,7 @@ También se incluye `eog` para abrir las imágenes en un entorno gráfico.
 ./scripts/run_clipon_interactive.sh
 ```
 
-Si se elige reanudar, se solicitará el directorio de trabajo existente; podrá sobrescribirlo o copiarlo a un nuevo directorio. Luego se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado. A continuación, seleccione el paso desde el cual continuar; la elección se guarda en `resume_config.sh` y exporta la variable `RESUME_STEP` antes de llamar al pipeline.
+Si se elige reanudar, se solicitará el directorio de trabajo existente; podrá sobrescribirlo o copiarlo a un nuevo directorio. Luego se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado y solicitar el paso desde el cual continuar. El valor elegido se guarda en `resume_config.sh` y se carga automáticamente para definir la variable `RESUME_STEP` antes de llamar al pipeline.
 
 Tras el resumen de configuración, el asistente permite ingresar una línea con parámetros adicionales que se añadirán a los comandos de los scripts internos. Esta opción ofrece flexibilidad para ajustar hilos, filtros u otros valores sin modificar directamente los scripts.
 
