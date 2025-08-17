@@ -3,6 +3,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+from collect_read_stats import collect_read_stats  # type: ignore
+
 
 def create_fastq(tmp_path: Path) -> Path:
     """Create a minimal FASTQ file with two reads."""
@@ -21,8 +24,28 @@ def create_fastq(tmp_path: Path) -> Path:
     return path
 
 
-def test_collect_read_stats(tmp_path: Path) -> None:
-    """Run collect_read_stats.py and validate TSV output."""
+def validate_output(out_tsv: Path) -> None:
+    """Validate the generated TSV file."""
+    with out_tsv.open() as fh:
+        reader = csv.DictReader(fh, delimiter="\t")
+        rows = list(reader)
+    assert rows == [
+        {"read_id": "read1", "length": "4", "mean_quality": "40.00"},
+        {"read_id": "read2", "length": "1", "mean_quality": "0.00"},
+    ]
+
+
+def test_collect_read_stats_function(tmp_path: Path) -> None:
+    """Call collect_read_stats directly and validate output."""
+    fastq = create_fastq(tmp_path)
+    out_tsv = tmp_path / "stats.tsv"
+
+    collect_read_stats(str(fastq), str(out_tsv))
+    validate_output(out_tsv)
+
+
+def test_collect_read_stats_cli(tmp_path: Path) -> None:
+    """Run the script via subprocess and validate output."""
     fastq = create_fastq(tmp_path)
     out_tsv = tmp_path / "stats.tsv"
     script = Path(__file__).resolve().parents[1] / "scripts" / "collect_read_stats.py"
@@ -31,12 +54,4 @@ def test_collect_read_stats(tmp_path: Path) -> None:
         [sys.executable, str(script), str(fastq), str(out_tsv)],
         check=True,
     )
-
-    with out_tsv.open() as fh:
-        reader = csv.DictReader(fh, delimiter="\t")
-        rows = list(reader)
-
-    assert rows == [
-        {"read_id": "read1", "length": "4", "mean_quality": "40.00"},
-        {"read_id": "read2", "length": "1", "mean_quality": "0.00"},
-    ]
+    validate_output(out_tsv)
