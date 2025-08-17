@@ -21,4 +21,4 @@ export BLAST_DB=${BLAST_DB:-/ruta/a/search_results.qza}
 export TAXONOMY_DB=${TAXONOMY_DB:-/ruta/a/taxonomy.qza}
 
 echo "Entornos creados. Recuerda que puedes ejecutar el pipeline con:"
-echo "./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>"
+echo "./scripts/run_clipon_interactive.sh"

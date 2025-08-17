@@ -35,6 +35,7 @@ p <- ggplot() +
     values = c(raw = "#1f77b4", filtered = "#ff7f0e"),
     name = "Dataset"
   ) +
+
   theme_minimal()
 
 ggsave(output_png, plot = p, width = 6, height = 4, units = "in")
