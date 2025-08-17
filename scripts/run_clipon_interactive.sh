@@ -352,11 +352,14 @@ if command -v Rscript >/dev/null 2>&1; then
     echo "Gráfico de calidad vs longitud: $PLOT_FILE"
     if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
 
-        if command -v chafa >/dev/null 2>&1; then
+        if command -v eog >/dev/null 2>&1; then
+            # Abrir el gráfico en una ventana nueva usando eog
+            eog "$PLOT_FILE" >/dev/null 2>&1 &
+        elif command -v chafa >/dev/null 2>&1; then
             # Mostrar el gráfico en la terminal usando chafa
             chafa "$PLOT_FILE" | less -R
         else
-            echo "Instale 'chafa' para visualizar el gráfico en la terminal. Archivo: $PLOT_FILE"
+            echo "Instale 'eog' o 'chafa' para visualizar el gráfico. Archivo: $PLOT_FILE"
         fi
 
     else
@@ -406,11 +409,14 @@ if command -v python >/dev/null 2>&1; then
         }
     if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
 
-        if command -v chafa >/dev/null 2>&1; then
+        if command -v eog >/dev/null 2>&1; then
+            # Abrir el gráfico de taxones en una ventana nueva
+            eog "$TAX_PLOT_FILE" >/dev/null 2>&1 &
+        elif command -v chafa >/dev/null 2>&1; then
             # Visualizar el gráfico de taxones en la terminal
             chafa "$TAX_PLOT_FILE" | less -R
         else
-            echo "Instale 'chafa' para visualizar el gráfico en la terminal. Archivo: $TAX_PLOT_FILE"
+            echo "Instale 'eog' o 'chafa' para visualizar el gráfico. Archivo: $TAX_PLOT_FILE"
         fi
 
     else
