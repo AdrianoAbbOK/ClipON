@@ -63,3 +63,60 @@ def test_metadata_mapping(tmp_path):
     map_file = tmp_path / "plot.png.sample_map.tsv"
     content = map_file.read_text().strip().splitlines()
     assert content[1] == "M1\tExp1"
+
+
+def test_metadata_partial_match_with_processed_names(tmp_path):
+    table = "Sample\tTaxon\tReads\ncleaned_A_trimmed\tSp1\t10\n"
+    in_file = tmp_path / "taxonomy.tsv"
+    in_file.write_text(table)
+    out_file = tmp_path / "plot.png"
+
+    meta = tmp_path / "meta.tsv"
+    meta.write_text("fastq\texperiment\nA\tExp1\n")
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "plot_taxon_bar.py"
+    env = os.environ.copy()
+    env["MPLBACKEND"] = "Agg"
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            str(in_file),
+            str(out_file),
+            "--metadata",
+            str(meta),
+            "--code-samples",
+        ],
+        check=True,
+        env=env,
+    )
+
+    map_file = tmp_path / "plot.png.sample_map.tsv"
+    content = map_file.read_text().strip().splitlines()
+    assert content[1] == "M1\tExp1"
+
+
+def test_fallback_to_clean_fastq(tmp_path):
+    table = "Sample\tTaxon\tReads\ncleaned_B_trimmed\tSp1\t10\n"
+    in_file = tmp_path / "taxonomy.tsv"
+    in_file.write_text(table)
+    out_file = tmp_path / "plot.png"
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "plot_taxon_bar.py"
+    env = os.environ.copy()
+    env["MPLBACKEND"] = "Agg"
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            str(in_file),
+            str(out_file),
+            "--code-samples",
+        ],
+        check=True,
+        env=env,
+    )
+
+    map_file = tmp_path / "plot.png.sample_map.tsv"
+    content = map_file.read_text().strip().splitlines()
+    assert content[1] == "M1\tB"
