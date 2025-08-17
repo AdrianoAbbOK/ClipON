@@ -252,14 +252,16 @@ mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR
 run_step() {
     local step="$1"
     local env="$2"
-    shift 2
+    local header="$3"
+    shift 3
     local cmd="$*"
 
     if [ "$RESUME_STEP" -gt "$step" ]; then
-        echo "Saltando paso $step; RESUME_STEP=$RESUME_STEP"
+        echo "Saltando paso $step: $header"
         return 0
     fi
 
+    print_section "$header"
     conda activate "$env"
     eval "$cmd"
     touch "$WORK_DIR/.step${step}_done"
@@ -290,13 +292,15 @@ classify_reads() {
     echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
 }
 
-print_section "Paso 1: Procesamiento inicial de FASTQ"
-run_step 1 clipon-prep INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" bash scripts/De0_A1_Process_Fastq.4_SeqKit.sh
+run_step 1 clipon-prep "Paso 1: Procesamiento inicial de FASTQ" \
+    INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" \
+    bash scripts/De0_A1_Process_Fastq.4_SeqKit.sh
 
-print_section "Paso 2: Recorte de secuencias"
-run_step 2 clipon-prep trim_reads
-print_section "Paso 3: Filtrado con NanoFilt"
-run_step 3 clipon-prep MIN_LEN="$MIN_LEN" MAX_LEN="$MAX_LEN" MIN_QUAL="$MIN_QUAL" INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
+run_step 2 clipon-prep "Paso 2: Recorte de secuencias" trim_reads
+run_step 3 clipon-prep "Paso 3: Filtrado con NanoFilt" \
+    MIN_LEN="$MIN_LEN" MAX_LEN="$MAX_LEN" MIN_QUAL="$MIN_QUAL" \
+    INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" \
+    LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
 echo -e "\nResumen de lecturas tras filtrado:"
 python3 scripts/summarize_read_counts.py "$WORK_DIR"
@@ -333,26 +337,25 @@ echo "El gráfico se encuentra en: $PLOT_FILE"
 read -rp "Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: " RESP
 [[ $RESP =~ ^[Ss]$ ]] || { echo "Pipeline abortado."; exit 0; }
 
-print_section "Paso 4: Clustering de NGSpecies"
-run_step 4 clipon-ngs \
+run_step 4 clipon-ngs "Paso 4: Clustering de NGSpecies" \
     M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
     QUAL="$QUAL" RC_ID="$RC_ID" ABUND_RATIO="$ABUND_RATIO" \
     INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
     bash scripts/De2_A2.5_NGSpecies_Clustering.sh
 
-print_section "Paso 5: Unificación de clusters"
-run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
+run_step 5 clipon-ngs "Paso 5: Unificación de clusters" \
+    BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" \
+    bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
 
 if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     echo "No se creó el archivo maestro de consensos. Abortando pipeline."
     exit 1
 fi
 
-print_section "Paso 6: Clasificación taxonómica"
-run_step 6 clipon-qiime classify_reads
+run_step 6 clipon-qiime "Paso 6: Clasificación taxonómica" classify_reads
 
-print_section "Paso 7: Exportación de clasificación"
-run_step 7 clipon-qiime bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+run_step 7 clipon-qiime "Paso 7: Exportación de clasificación" \
+    bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
 
