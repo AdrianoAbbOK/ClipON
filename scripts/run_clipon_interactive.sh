@@ -79,8 +79,7 @@ if [ "$MODE" = "resume" ]; then
         fi
     done
     scripts/check_pipeline_status.sh "$WORK_DIR"
-    read -rp "Seleccione el paso de reanudación: " RESUME_STEP
-    echo "export RESUME_STEP=\"$RESUME_STEP\"" > "$WORK_DIR/resume_config.sh"
+    # Leer RESUME_STEP desde el archivo generado por check_pipeline_status.sh
     source "$WORK_DIR/resume_config.sh"
 fi
 
