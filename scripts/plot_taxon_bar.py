@@ -6,7 +6,8 @@ Usage:
 
 The input TSV must contain at least the columns Sample, Taxon and Reads.
 Empty or missing taxon names are replaced with "Unassigned" to ensure each
-sample is represented.
+sample is represented. Taxa in the plot are replaced by short codes (T1, T2,
+...) and the code-to-taxon mapping is saved to ``<output>.taxon_map.tsv``.
 """
 
 from __future__ import annotations
@@ -45,12 +46,23 @@ def main() -> None:
         lambda x: x / x.sum()
     )
 
+    unique_taxa = sorted(grouped["Taxon"].unique())
+    taxon_map = {taxon: f"T{i + 1}" for i, taxon in enumerate(unique_taxa)}
+    map_path = out_path.with_suffix(out_path.suffix + ".taxon_map.tsv")
+    pd.DataFrame({
+        "code": [taxon_map[t] for t in unique_taxa],
+        "taxon": unique_taxa,
+    }).to_csv(map_path, sep="\t", index=False)
+
+    grouped["Taxon"] = grouped["Taxon"].map(taxon_map)
+
     pivot = grouped.pivot(index="Sample", columns="Taxon", values="Percent")
     pivot = pivot.fillna(0)
 
     ax = pivot.plot(kind="bar", stacked=True, figsize=(8, 5))
     ax.set_ylabel("Proportion of reads")
     ax.set_xlabel("Sample")
+    ax.legend(title=f"Taxa (see {map_path.name})")
     plt.tight_layout()
     plt.savefig(out_path, dpi=300)
     print(out_path.resolve())
