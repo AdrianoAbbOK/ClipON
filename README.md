@@ -189,7 +189,8 @@ directorio.  Activará los entornos Conda necesarios automáticamente.
 
 ### Asistente interactivo con reanudación
 El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
-Puede recibir `--metadata <archivo>`; si no se proporciona, pedirá la ruta durante la ejecución.
+Puede recibir `--metadata <archivo>`; si no se proporciona, pedirá la ruta durante la ejecución
+después de indicar los archivos FASTQ.
 Intentará abrir las imágenes con `eog` si está instalado en el sistema.
 
 ```bash

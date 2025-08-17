@@ -15,20 +15,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Solicitar archivo de metadata si no se proporcionó por argumento
-if [ -z "$METADATA_FILE" ]; then
-    while true; do
-        read -rp "Ingrese la ruta del archivo de metadata (Enter para omitir): " METADATA_FILE
-        if [ -z "$METADATA_FILE" ]; then
-            break
-        elif [ -f "$METADATA_FILE" ]; then
-            break
-        else
-            echo "El archivo '$METADATA_FILE' no existe. Intente nuevamente."
-        fi
-    done
-fi
-
 # Función auxiliar para solicitar parámetros con un valor por defecto
 prompt_param() {
     local var_name="$1"
@@ -130,6 +116,21 @@ if [ "$MODE" = "new" ] || [ "${RESUME_STEP:-1}" -le 1 ]; then
             continue
         fi
         break
+    done
+fi
+
+# Solicitar archivo de metadata después de los FASTQ si no se proporcionó
+# por argumento
+if [ -z "$METADATA_FILE" ]; then
+    while true; do
+        read -rp "Ingrese la ruta del archivo de metadata (Enter para omitir): " METADATA_FILE
+        if [ -z "$METADATA_FILE" ]; then
+            break
+        elif [ -f "$METADATA_FILE" ]; then
+            break
+        else
+            echo "El archivo '$METADATA_FILE' no existe. Intente nuevamente."
+        fi
     done
 fi
 
