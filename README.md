@@ -173,7 +173,8 @@ directorio.  Activará los entornos Conda necesarios automáticamente.
 
 ### Asistente interactivo con reanudación
 El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
-Para visualizar los gráficos generados directamente en la terminal, instale la utilidad `chafa`.
+Para visualizar los gráficos generados directamente en la terminal, instale la utilidad `chafa`. Si cuenta con un entorno gráfico,
+el asistente intentará abrir los PNG en una ventana nueva utilizando `eog`.
 
 ```bash
 ./scripts/run_clipon_interactive.sh
