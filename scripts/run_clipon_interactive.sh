@@ -83,22 +83,25 @@ if [ "$MODE" = "resume" ]; then
     source "$WORK_DIR/resume_config.sh"
 fi
 
-while true; do
-    read -rp "Ingrese el directorio que contiene los archivos FASTQ: " INPUT_DIR
-    INPUT_DIR="${INPUT_DIR%/}"
-    if [ ! -d "$INPUT_DIR" ]; then
-        echo "El directorio '$INPUT_DIR' no existe o no es accesible. Intente nuevamente."
-        continue
-    fi
-    shopt -s nullglob
-    fastqs=("$INPUT_DIR"/*.fastq "$INPUT_DIR"/*.fq)
-    shopt -u nullglob
-    if [ ${#fastqs[@]} -eq 0 ]; then
-        echo "No se encontraron archivos FASTQ en '$INPUT_DIR'. Intente nuevamente."
-        continue
-    fi
-    break
-done
+INPUT_DIR="N/A"
+if [ "$MODE" = "new" ] || [ "${RESUME_STEP:-1}" -le 1 ]; then
+    while true; do
+        read -rp "Ingrese el directorio que contiene los archivos FASTQ: " INPUT_DIR
+        INPUT_DIR="${INPUT_DIR%/}"
+        if [ ! -d "$INPUT_DIR" ]; then
+            echo "El directorio '$INPUT_DIR' no existe o no es accesible. Intente nuevamente."
+            continue
+        fi
+        shopt -s nullglob
+        fastqs=("$INPUT_DIR"/*.fastq "$INPUT_DIR"/*.fq)
+        shopt -u nullglob
+        if [ ${#fastqs[@]} -eq 0 ]; then
+            echo "No se encontraron archivos FASTQ en '$INPUT_DIR'. Intente nuevamente."
+            continue
+        fi
+        break
+    done
+fi
 
 if [ "$MODE" = "new" ]; then
     while true; do
@@ -147,71 +150,108 @@ echo "-->Aparecerá la variable y el valor estandarizado:"
 echo "-->Modifique con un valor nuevo o presione enter para mantener el valor estandar"
 echo "========================================================="
 
-print_section "Paso 2: Recorte de secuencias"
+if [ "$RESUME_STEP" -le 2 ]; then
+    print_section "Paso 2: Recorte de secuencias"
 
-read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
-DEFAULT_TRIM_FRONT=0
-DEFAULT_TRIM_BACK=0
-if [[ $do_trim =~ ^[Yy]$ ]]; then
-    prompt_param TRIM_FRONT "Número de bases a recortar del inicio" "$DEFAULT_TRIM_FRONT"
-    prompt_param TRIM_BACK "Número de bases a recortar del final" "$DEFAULT_TRIM_BACK"
-    SKIP_TRIM=0
+    read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
+    DEFAULT_TRIM_FRONT=0
+    DEFAULT_TRIM_BACK=0
+    if [[ $do_trim =~ ^[Yy]$ ]]; then
+        prompt_param TRIM_FRONT "Número de bases a recortar del inicio" "$DEFAULT_TRIM_FRONT"
+        prompt_param TRIM_BACK "Número de bases a recortar del final" "$DEFAULT_TRIM_BACK"
+        SKIP_TRIM=0
+    else
+        SKIP_TRIM=1
+        TRIM_FRONT=$DEFAULT_TRIM_FRONT
+        TRIM_BACK=$DEFAULT_TRIM_BACK
+    fi
 else
     SKIP_TRIM=1
-    TRIM_FRONT=$DEFAULT_TRIM_FRONT
-    TRIM_BACK=$DEFAULT_TRIM_BACK
+    TRIM_FRONT=0
+    TRIM_BACK=0
 fi
 
-print_section "Paso 3: Filtrado con NanoFilt"
-DEFAULT_MIN_LEN=650
-DEFAULT_MAX_LEN=750
-DEFAULT_MIN_QUAL=10
-prompt_param MIN_LEN "  Longitud mínima" "$DEFAULT_MIN_LEN"
-prompt_param MAX_LEN "  Longitud máxima" "$DEFAULT_MAX_LEN"
-prompt_param MIN_QUAL "  Calidad mínima" "$DEFAULT_MIN_QUAL"
+if [ "$RESUME_STEP" -le 3 ]; then
+    print_section "Paso 3: Filtrado con NanoFilt"
+    DEFAULT_MIN_LEN=650
+    DEFAULT_MAX_LEN=750
+    DEFAULT_MIN_QUAL=10
+    prompt_param MIN_LEN "  Longitud mínima" "$DEFAULT_MIN_LEN"
+    prompt_param MAX_LEN "  Longitud máxima" "$DEFAULT_MAX_LEN"
+    prompt_param MIN_QUAL "  Calidad mínima" "$DEFAULT_MIN_QUAL"
+else
+    MIN_LEN=650
+    MAX_LEN=750
+    MIN_QUAL=10
+fi
 
-print_section "Paso 4: Clustering de NGSpecies"
-DEFAULT_M_LEN=700
-DEFAULT_SUPPORT=150
-DEFAULT_THREADS=16
-DEFAULT_QUAL=10
-DEFAULT_RC_ID=0.98
-DEFAULT_ABUND_RATIO=0.01
-prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
-prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
-prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
-prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
-prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
-prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
+if [ "$RESUME_STEP" -le 4 ]; then
+    print_section "Paso 4: Clustering de NGSpecies"
+    DEFAULT_M_LEN=700
+    DEFAULT_SUPPORT=150
+    DEFAULT_THREADS=16
+    DEFAULT_QUAL=10
+    DEFAULT_RC_ID=0.98
+    DEFAULT_ABUND_RATIO=0.01
+    prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
+    prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
+    prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
+    prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
+    prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
+    prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
+else
+    M_LEN=700
+    SUPPORT=150
+    THREADS=16
+    QUAL=10
+    RC_ID=0.98
+    ABUND_RATIO=0.01
+fi
 
-print_section "Paso 6: Clasificación taxonómica"
-DEFAULT_NUM_THREADS=5
-DEFAULT_PERC_ID=0.8
-DEFAULT_QUERY_COV=0.8
-DEFAULT_MAX_ACCEPTS=1
-DEFAULT_MIN_CONSENSUS=0.51
-prompt_param NUM_THREADS "  Número de hilos (--p-num-threads)" "$DEFAULT_NUM_THREADS"
-prompt_param PERC_ID "  Identidad mínima (--p-perc-identity)" "$DEFAULT_PERC_ID"
-prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY_COV"
-prompt_param MAX_ACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAX_ACCEPTS"
-prompt_param MIN_CONSENSUS "  Consenso mínimo (--p-min-consensus)" "$DEFAULT_MIN_CONSENSUS"
+if [ "$RESUME_STEP" -le 6 ]; then
+    print_section "Paso 6: Clasificación taxonómica"
+    DEFAULT_NUM_THREADS=5
+    DEFAULT_PERC_ID=0.8
+    DEFAULT_QUERY_COV=0.8
+    DEFAULT_MAX_ACCEPTS=1
+    DEFAULT_MIN_CONSENSUS=0.51
+    prompt_param NUM_THREADS "  Número de hilos (--p-num-threads)" "$DEFAULT_NUM_THREADS"
+    prompt_param PERC_ID "  Identidad mínima (--p-perc-identity)" "$DEFAULT_PERC_ID"
+    prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY_COV"
+    prompt_param MAX_ACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAX_ACCEPTS"
+    prompt_param MIN_CONSENSUS "  Consenso mínimo (--p-min-consensus)" "$DEFAULT_MIN_CONSENSUS"
+else
+    NUM_THREADS=5
+    PERC_ID=0.8
+    QUERY_COV=0.8
+    MAX_ACCEPTS=1
+    MIN_CONSENSUS=0.51
+fi
 
 print_section "Parámetros avanzados (opcional)"
-read -rp "¿Agregar parámetros avanzados al recorte? (s/n) " resp
-if [[ $resp =~ ^[Ss]$ ]]; then
-    read -rp "  Parámetros para recorte: " TRIM_EXTRA_ARGS
+if [ "$RESUME_STEP" -le 2 ]; then
+    read -rp "¿Agregar parámetros avanzados al recorte? (s/n) " resp
+    if [[ $resp =~ ^[Ss]$ ]]; then
+        read -rp "  Parámetros para recorte: " TRIM_EXTRA_ARGS
+    fi
 fi
-read -rp "¿Agregar parámetros avanzados al filtrado? (s/n) " resp
-if [[ $resp =~ ^[Ss]$ ]]; then
-    read -rp "  Parámetros para filtrado: " FILTER_EXTRA_ARGS
+if [ "$RESUME_STEP" -le 3 ]; then
+    read -rp "¿Agregar parámetros avanzados al filtrado? (s/n) " resp
+    if [[ $resp =~ ^[Ss]$ ]]; then
+        read -rp "  Parámetros para filtrado: " FILTER_EXTRA_ARGS
+    fi
 fi
-read -rp "¿Agregar parámetros avanzados al clustering? (s/n) " resp
-if [[ $resp =~ ^[Ss]$ ]]; then
-    read -rp "  Parámetros para clustering: " CLUSTER_EXTRA_ARGS
+if [ "$RESUME_STEP" -le 4 ]; then
+    read -rp "¿Agregar parámetros avanzados al clustering? (s/n) " resp
+    if [[ $resp =~ ^[Ss]$ ]]; then
+        read -rp "  Parámetros para clustering: " CLUSTER_EXTRA_ARGS
+    fi
 fi
-read -rp "¿Agregar parámetros avanzados a la clasificación? (s/n) " resp
-if [[ $resp =~ ^[Ss]$ ]]; then
-    read -rp "  Parámetros para clasificación: " CLASSIFY_EXTRA_ARGS
+if [ "$RESUME_STEP" -le 6 ]; then
+    read -rp "¿Agregar parámetros avanzados a la clasificación? (s/n) " resp
+    if [[ $resp =~ ^[Ss]$ ]]; then
+        read -rp "  Parámetros para clasificación: " CLASSIFY_EXTRA_ARGS
+    fi
 fi
 
 echo "========================================================="
