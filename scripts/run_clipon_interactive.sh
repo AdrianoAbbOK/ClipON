@@ -197,6 +197,24 @@ prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY
 prompt_param MAX_ACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAX_ACCEPTS"
 prompt_param MIN_CONSENSUS "  Consenso mínimo (--p-min-consensus)" "$DEFAULT_MIN_CONSENSUS"
 
+print_section "Parámetros avanzados (opcional)"
+read -rp "¿Agregar parámetros avanzados al recorte? (s/n) " resp
+if [[ $resp =~ ^[Ss]$ ]]; then
+    read -rp "  Parámetros para recorte: " TRIM_EXTRA_ARGS
+fi
+read -rp "¿Agregar parámetros avanzados al filtrado? (s/n) " resp
+if [[ $resp =~ ^[Ss]$ ]]; then
+    read -rp "  Parámetros para filtrado: " FILTER_EXTRA_ARGS
+fi
+read -rp "¿Agregar parámetros avanzados al clustering? (s/n) " resp
+if [[ $resp =~ ^[Ss]$ ]]; then
+    read -rp "  Parámetros para clustering: " CLUSTER_EXTRA_ARGS
+fi
+read -rp "¿Agregar parámetros avanzados a la clasificación? (s/n) " resp
+if [[ $resp =~ ^[Ss]$ ]]; then
+    read -rp "  Parámetros para clasificación: " CLASSIFY_EXTRA_ARGS
+fi
+
 echo "========================================================="
 echo "Resumen de configuración"
 echo "========================================================="
@@ -228,6 +246,11 @@ echo "    Identidad mínima: $PERC_ID"
 echo "    Cobertura de consulta: $QUERY_COV"
 echo "    Máximos aceptados: $MAX_ACCEPTS"
 echo "    Consenso mínimo: $MIN_CONSENSUS"
+echo " *Parámetros avanzados:"
+echo "    Recorte: ${TRIM_EXTRA_ARGS:-ninguno}"
+echo "    Filtrado: ${FILTER_EXTRA_ARGS:-ninguno}"
+echo "    Clustering: ${CLUSTER_EXTRA_ARGS:-ninguno}"
+echo "    Clasificación: ${CLASSIFY_EXTRA_ARGS:-ninguno}"
 echo "========================================================="
 read -rp "¿Continuar con la ejecución del pipeline? (y/n) " go
 if [[ ! $go =~ ^[Yy]$ ]]; then
@@ -247,13 +270,20 @@ CLUSTER_DIR="$WORK_DIR/4_clustered"
 UNIFIED_DIR="$WORK_DIR/5_unified"
 LOG_FILE="$FILTER_DIR/nanofilt.log"
 
+# Variables para parámetros avanzados opcionales
+TRIM_EXTRA_ARGS=""
+FILTER_EXTRA_ARGS=""
+CLUSTER_EXTRA_ARGS=""
+CLASSIFY_EXTRA_ARGS=""
+
 mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR"
 
 run_step() {
     local step="$1"
     local env="$2"
     local header="$3"
-    shift 3
+    local extra_args="$4"
+    shift 4
     local cmd="$*"
 
     if [ "$RESUME_STEP" -gt "$step" ]; then
@@ -263,7 +293,11 @@ run_step() {
 
     print_section "$header"
     conda activate "$env"
-    eval "$cmd"
+    if [ -n "$extra_args" ]; then
+        eval "$cmd $extra_args"
+    else
+        eval "$cmd"
+    fi
     touch "$WORK_DIR/.step${step}_done"
 }
 
@@ -273,7 +307,7 @@ trim_reads() {
         cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
     else
         INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" \
-            bash scripts/De1_A1.5_Trim_Fastq.sh
+            bash scripts/De1_A1.5_Trim_Fastq.sh "$@"
     fi
 }
 
@@ -288,16 +322,17 @@ classify_reads() {
         "$UNIFIED_DIR/consensos_todos.fasta" \
         "$UNIFIED_DIR" \
         "$BLAST_DB" \
-        "$TAXONOMY_DB"
+        "$TAXONOMY_DB" \
+        "$@"
     echo "Clasificación finalizada. Revise $UNIFIED_DIR/MaxAc_5"
 }
 
-run_step 1 clipon-prep "Paso 1: Procesamiento inicial de FASTQ" \
+run_step 1 clipon-prep "Paso 1: Procesamiento inicial de FASTQ" "" \
     INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" \
     bash scripts/De0_A1_Process_Fastq.4_SeqKit.sh
 
-run_step 2 clipon-prep "Paso 2: Recorte de secuencias" trim_reads
-run_step 3 clipon-prep "Paso 3: Filtrado con NanoFilt" \
+run_step 2 clipon-prep "Paso 2: Recorte de secuencias" "$TRIM_EXTRA_ARGS" trim_reads
+run_step 3 clipon-prep "Paso 3: Filtrado con NanoFilt" "$FILTER_EXTRA_ARGS" \
     MIN_LEN="$MIN_LEN" MAX_LEN="$MAX_LEN" MIN_QUAL="$MIN_QUAL" \
     INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" \
     LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
@@ -337,13 +372,13 @@ echo "El gráfico se encuentra en: $PLOT_FILE"
 read -rp "Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: " RESP
 [[ $RESP =~ ^[Ss]$ ]] || { echo "Pipeline abortado."; exit 0; }
 
-run_step 4 clipon-ngs "Paso 4: Clustering de NGSpecies" \
+run_step 4 clipon-ngs "Paso 4: Clustering de NGSpecies" "$CLUSTER_EXTRA_ARGS" \
     M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
     QUAL="$QUAL" RC_ID="$RC_ID" ABUND_RATIO="$ABUND_RATIO" \
     INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
     bash scripts/De2_A2.5_NGSpecies_Clustering.sh
 
-run_step 5 clipon-ngs "Paso 5: Unificación de clusters" \
+run_step 5 clipon-ngs "Paso 5: Unificación de clusters" "" \
     BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" \
     bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
 
@@ -352,9 +387,9 @@ if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     exit 1
 fi
 
-run_step 6 clipon-qiime "Paso 6: Clasificación taxonómica" classify_reads
+run_step 6 clipon-qiime "Paso 6: Clasificación taxonómica" "$CLASSIFY_EXTRA_ARGS" classify_reads
 
-run_step 7 clipon-qiime "Paso 7: Exportación de clasificación" \
+run_step 7 clipon-qiime "Paso 7: Exportación de clasificación" "" \
     bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/MaxAc_5"
@@ -393,3 +428,19 @@ echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/MaxAc_5"
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
+echo "Parámetros avanzados utilizados:"
+if [ -n "$TRIM_EXTRA_ARGS" ]; then
+    echo "  Recorte: $TRIM_EXTRA_ARGS"
+fi
+if [ -n "$FILTER_EXTRA_ARGS" ]; then
+    echo "  Filtrado: $FILTER_EXTRA_ARGS"
+fi
+if [ -n "$CLUSTER_EXTRA_ARGS" ]; then
+    echo "  Clustering: $CLUSTER_EXTRA_ARGS"
+fi
+if [ -n "$CLASSIFY_EXTRA_ARGS" ]; then
+    echo "  Clasificación: $CLASSIFY_EXTRA_ARGS"
+fi
+if [ -z "$TRIM_EXTRA_ARGS$FILTER_EXTRA_ARGS$CLUSTER_EXTRA_ARGS$CLASSIFY_EXTRA_ARGS" ]; then
+    echo "  Ninguno"
+fi
