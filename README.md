@@ -39,6 +39,10 @@ habilitar esta etapa.
 
 Esto creará subdirectorios dentro de `<dir_trabajo>` para cada etapa.
 Las rutas de entrada y salida también pueden configurarse manualmente al invocar cada script por separado.
+
+## Configuración
+
+Ejecuta `./setup.sh` para instalar Miniconda, crear los entornos necesarios y asegurar la presencia de `eog` para la visualización de imágenes.
 ## Requisitos
 
  - SeqKit

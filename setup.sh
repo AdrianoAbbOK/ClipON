@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Instala eog para la visualización de imágenes
+if ! command -v eog >/dev/null 2>&1; then
+  echo "Instalando eog..."
+  if command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get update -y
+    sudo apt-get install -y eog
+  else
+    echo "apt-get no está disponible; instala eog manualmente." >&2
+  fi
+fi
+
 # Instala/actualiza Miniconda y crea los entornos requeridos
 ./scripts/install_envs.sh
 
