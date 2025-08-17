@@ -60,6 +60,7 @@ if [[ $run_mode =~ ^[Rr]$ ]]; then
     MODE="resume"
 else
     MODE="new"
+    RESUME_STEP=1
 fi
 
 echo "========================================================="
@@ -164,7 +165,7 @@ echo "-->Aparecerá la variable y el valor estandarizado:"
 echo "-->Modifique con un valor nuevo o presione enter para mantener el valor estandar"
 echo "========================================================="
 
-if [ "$RESUME_STEP" -le 2 ]; then
+if [ "${RESUME_STEP:-1}" -le 2 ]; then
     print_section "Paso 2: Recorte de secuencias"
 
     read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
@@ -185,7 +186,7 @@ else
     TRIM_BACK=0
 fi
 
-if [ "$RESUME_STEP" -le 3 ]; then
+if [ "${RESUME_STEP:-1}" -le 3 ]; then
     print_section "Paso 3: Filtrado con NanoFilt"
     DEFAULT_MIN_LEN=650
     DEFAULT_MAX_LEN=750
@@ -199,7 +200,7 @@ else
     MIN_QUAL=10
 fi
 
-if [ "$RESUME_STEP" -le 4 ]; then
+if [ "${RESUME_STEP:-1}" -le 4 ]; then
     print_section "Paso 4: Clustering de NGSpecies"
     DEFAULT_M_LEN=700
     DEFAULT_SUPPORT=150
@@ -222,7 +223,7 @@ else
     ABUND_RATIO=0.01
 fi
 
-if [ "$RESUME_STEP" -le 6 ]; then
+if [ "${RESUME_STEP:-1}" -le 6 ]; then
     print_section "Paso 6: Clasificación taxonómica"
     DEFAULT_NUM_THREADS=5
     DEFAULT_PERC_ID=0.8
@@ -243,25 +244,25 @@ else
 fi
 
 print_section "Parámetros avanzados (opcional)"
-if [ "$RESUME_STEP" -le 2 ]; then
+if [ "${RESUME_STEP:-1}" -le 2 ]; then
     read -rp "¿Agregar parámetros avanzados al recorte? (s/n) " resp
     if [[ $resp =~ ^[Ss]$ ]]; then
         read -rp "  Parámetros para recorte: " TRIM_EXTRA_ARGS
     fi
 fi
-if [ "$RESUME_STEP" -le 3 ]; then
+if [ "${RESUME_STEP:-1}" -le 3 ]; then
     read -rp "¿Agregar parámetros avanzados al filtrado? (s/n) " resp
     if [[ $resp =~ ^[Ss]$ ]]; then
         read -rp "  Parámetros para filtrado: " FILTER_EXTRA_ARGS
     fi
 fi
-if [ "$RESUME_STEP" -le 4 ]; then
+if [ "${RESUME_STEP:-1}" -le 4 ]; then
     read -rp "¿Agregar parámetros avanzados al clustering? (s/n) " resp
     if [[ $resp =~ ^[Ss]$ ]]; then
         read -rp "  Parámetros para clustering: " CLUSTER_EXTRA_ARGS
     fi
 fi
-if [ "$RESUME_STEP" -le 6 ]; then
+if [ "${RESUME_STEP:-1}" -le 6 ]; then
     read -rp "¿Agregar parámetros avanzados a la clasificación? (s/n) " resp
     if [[ $resp =~ ^[Ss]$ ]]; then
         read -rp "  Parámetros para clasificación: " CLASSIFY_EXTRA_ARGS
@@ -339,7 +340,7 @@ run_step() {
     shift 4
     local cmd="$*"
 
-    if [ "$RESUME_STEP" -gt "$step" ]; then
+    if [ "${RESUME_STEP:-1}" -gt "$step" ]; then
         echo "Saltando paso $step: $header"
         return 0
     fi
@@ -391,7 +392,7 @@ run_step 3 clipon-prep "Paso 3: Filtrado con NanoFilt" "$FILTER_EXTRA_ARGS" \
     LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 # Resumen y gráfico de calidad solo si se ejecutan los primeros pasos
 PLOT_FILE="N/A"
-if [ "$RESUME_STEP" -le 3 ]; then
+if [ "${RESUME_STEP:-1}" -le 3 ]; then
     echo -e "\nResumen de lecturas tras filtrado:"
     python3 scripts/summarize_read_counts.py "$WORK_DIR" ${METADATA_FILE:+--metadata "$METADATA_FILE"}
 
@@ -431,7 +432,7 @@ if [ "$RESUME_STEP" -le 3 ]; then
     read -rp "Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: " RESP
     [[ $RESP =~ ^[Ss]$ ]] || { echo "Pipeline abortado."; exit 0; }
 else
-    echo "Omitiendo resumen de lecturas y generación del gráfico (RESUME_STEP=$RESUME_STEP > 3)."
+    echo "Omitiendo resumen de lecturas y generación del gráfico (RESUME_STEP=${RESUME_STEP:-1} > 3)."
 fi
 
 run_step 4 clipon-ngs "Paso 4: Clustering de NGSpecies" "$CLUSTER_EXTRA_ARGS" \
