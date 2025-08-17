@@ -14,6 +14,21 @@ import pathlib
 import re
 
 
+KNOWN_PREFIXES = ["cleaned_", "filtered_", "trimmed_"]
+KNOWN_SUFFIXES = ["_trimmed", "_filtered", "_cleaned"]
+
+
+def clean_fastq_name(name: str) -> str:
+    """Remove common processing prefixes and suffixes from a FASTQ name."""
+    for prefix in KNOWN_PREFIXES:
+        if name.startswith(prefix):
+            name = name[len(prefix) :]
+    for suffix in KNOWN_SUFFIXES:
+        if name.endswith(suffix):
+            name = name[: -len(suffix)]
+    return name
+
+
 def load_metadata(path: str | None) -> dict[str, str]:
     mapping: dict[str, str] = {}
     if not path:
@@ -49,7 +64,11 @@ def main() -> None:
                 raise ValueError(f"Could not parse Feature ID: {fid}")
             reads, sample = m.groups()
             base_id = fid[: m.start()]
-            sample = mapping.get(sample, sample)
+            if sample in mapping:
+                sample = mapping[sample]
+            else:
+                cleaned = clean_fastq_name(sample)
+                sample = mapping.get(cleaned, cleaned)
             writer.writerow(
                 {
                     "Feature ID": base_id,
