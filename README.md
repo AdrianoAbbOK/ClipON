@@ -56,8 +56,8 @@ Ejecuta `./setup.sh` para instalar Miniconda, crear los entornos necesarios y as
    puede instalarse con `sudo apt install r-base`)
 - eog (opcional, instale con `apt install eog` para abrir gráficos PNG en un
   entorno gráfico)
-- msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para
-  enviar notificaciones por correo)
+- msmtp (opcional, utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh`
+  para enviar notificaciones por correo)
 
 ## Ejemplos de ejecución
 
@@ -168,16 +168,17 @@ También puede generarse a partir de los consensos unificados:
 
 ### Clasificación con QIIME2
 ```bash
-./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
+./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh \
+    --manifest manifest.tsv \
+    --output-dir resultados \
+    --cluster-id 0.98 \
+    --blast-id 0.8 \
+    --maxaccepts 5 \
+    --notify --email me@example.com
 ```
-La clasificación se realiza dentro de la función `clasificar_secuencias` de dicho script.
-Para ejecutar todas las combinaciones de parámetros de forma automática puede usarse
-`scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh`. Los valores de manifiesto, prefijo,
-base de datos y correo pueden pasarse como argumentos o mediante variables de entorno:
-```bash
-MANIFEST_FILE=manifest.tsv PREFIX=prueba DIRDB=NCBI_DB EMAIL=me@example.com \
-./scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh
-```
+La clasificación utiliza las variables de entorno `BLAST_DB` y `TAXONOMY_DB`
+para localizar los artefactos de referencia. Las notificaciones por correo son
+opcionales y requieren `msmtp`.
 
 ### Ejecución completa
 El wrapper `run_clipon_pipeline.sh` puede ejecutarse desde cualquier
