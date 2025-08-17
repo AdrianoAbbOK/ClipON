@@ -48,6 +48,7 @@ SKIP_TRIM="${SKIP_TRIM:-0}"
 TRIM_FRONT="${TRIM_FRONT:-30}"
 TRIM_BACK="${TRIM_BACK:-30}"
 RESUME_STEP="${RESUME_STEP:-1}"
+CLUSTER_METHOD="${CLUSTER_METHOD:-ngspecies}"
 
 # Definir subdirectorios
 PROCESSED_DIR="$WORK_DIR/1_processed"
@@ -154,6 +155,7 @@ case "$CLUSTER_METHOD" in
         ;;
 esac
 run_step 7 clipon-qiime METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
 
