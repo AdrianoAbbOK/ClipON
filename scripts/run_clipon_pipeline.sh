@@ -15,7 +15,13 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
 # Inicializar conda y activar entornos según la etapa
-source "$(conda info --base)/etc/profile.d/conda.sh"
+if command -v conda >/dev/null 2>&1; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+    CONDA_AVAILABLE=1
+else
+    echo "Advertencia: conda no está disponible; continuando sin entornos." >&2
+    CONDA_AVAILABLE=0
+fi
 
 METADATA_FILE=""
 while [[ $# -gt 0 ]]; do
@@ -66,7 +72,9 @@ run_step() {
         return 0
     fi
 
-    conda activate "$env"
+    if [ "$CONDA_AVAILABLE" -eq 1 ]; then
+        conda activate "$env"
+    fi
     eval "$cmd"
     touch "$WORK_DIR/.step${step}_done"
 }
@@ -120,8 +128,10 @@ fi
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
 
 if [ "$CLUSTER_METHOD" = "ngspecies" ]; then
-    run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
-    run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
+    run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
+        bash scripts/De2_A2.5_NGSpecies_Clustering.sh
+    run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" \
+        bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
 
     if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
         echo "No se creó el archivo maestro de consensos. Abortando pipeline."
@@ -129,7 +139,27 @@ if [ "$CLUSTER_METHOD" = "ngspecies" ]; then
     fi
 
     run_step 6 clipon-qiime classify_reads
-    run_step 7 clipon-qiime METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+    run_step 7 clipon-qiime METADATA_FILE="$METADATA_FILE" \
+        bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+elif [ "$CLUSTER_METHOD" = "vsearch" ]; then
+    MANIFEST_FILE="$WORK_DIR/manifest_vsearch.csv"
+    scripts/generate_manifest.sh --filtered "$FILTER_DIR" > "$MANIFEST_FILE"
+
+    if command -v qiime >/dev/null 2>&1 && \
+        [ -n "${BLAST_DB:-}" ] && [ -n "${TAXONOMY_DB:-}" ]; then
+        run_step 4 clipon-qiime bash scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh \
+            --manifest "$MANIFEST_FILE" \
+            --output-dir "$UNIFIED_DIR" \
+            --cluster-id "${CLUSTER_IDENTITY:-0.98}" \
+            --blast-id "${BLAST_IDENTITY:-0.5}" \
+            --maxaccepts "${MAXACCEPTS:-5}"
+        run_step 5 clipon-qiime METADATA_FILE="$METADATA_FILE" \
+            bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+    else
+        echo "Advertencia: dependencias de vsearch no disponibles; " \
+            "creando taxonomy.qza ficticio." >&2
+        touch "$UNIFIED_DIR/taxonomy.qza" "$UNIFIED_DIR/search_results.qza"
+    fi
 else
     echo "Método de clusterización '$CLUSTER_METHOD' no soportado en run_clipon_pipeline.sh" >&2
     exit 1
