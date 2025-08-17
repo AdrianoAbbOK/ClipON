@@ -517,8 +517,11 @@ echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
 print_section "Gráfico de taxones"
 TAX_PLOT_FILE="N/A"
 if command -v python >/dev/null 2>&1; then
+    COLLAPSED_TAX="$UNIFIED_DIR/Results/species_reads.tsv"
+    python scripts/collapse_reads_by_species.py \
+        "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" > "$COLLAPSED_TAX"
     TAX_PLOT_FILE=$(python scripts/plot_taxon_bar.py \
-        "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
+        "$COLLAPSED_TAX" \
         "$UNIFIED_DIR/Results/taxon_stacked_bar.png" \
         ${METADATA_FILE:+--metadata "$METADATA_FILE"} --code-samples 2>&1 | \
 
