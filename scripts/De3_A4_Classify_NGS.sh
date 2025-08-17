@@ -40,6 +40,7 @@ if ! command -v qiime >/dev/null; then
 fi
 
 mkdir -p "$output_dir"
+log_file="$output_dir/classify.log"
 
 # Activar entorno por si el script se ejecuta de forma independiente
 if command -v conda >/dev/null; then
@@ -47,22 +48,38 @@ if command -v conda >/dev/null; then
     conda activate clipon-qiime
 fi
 
-qiime tools import \
+# Importar secuencias y redirigir salida a un archivo de log
+if qiime tools import \
     --input-path "$input_fasta" \
     --type 'FeatureData[Sequence]' \
-    --output-path "$output_dir/consensus_sequences.qza"
+    --output-path "$output_dir/consensus_sequences.qza" \
+    >>"$log_file" 2>&1; then
+    echo "Importación completada: $output_dir/consensus_sequences.qza"
+else
+    echo "Error en la importación. Revise $log_file" >&2
+    exit 1
+fi
 
-qiime feature-classifier classify-consensus-blast \
+# Clasificación BLAST y redirección al log
+if qiime feature-classifier classify-consensus-blast \
     --i-query "$output_dir/consensus_sequences.qza" \
     --i-blastdb "$blast_db" \
     --i-reference-taxonomy "$taxonomy_db" \
-    --verbose \
     --p-num-threads "$NUM_THREADS" \
     --p-perc-identity "$PERC_ID" \
     --p-query-cov "$QUERY_COV" \
     --p-maxaccepts "$MAX_ACCEPTS" \
     --p-min-consensus "$MIN_CONSENSUS" \
     --o-classification "$output_dir/taxonomy.qza" \
-    --o-search-results "$output_dir/search_results.qza"
+    --o-search-results "$output_dir/search_results.qza" \
+    >>"$log_file" 2>&1; then
+    echo "Clasificación completada:"
+    echo "  Taxonomía: $output_dir/taxonomy.qza"
+    echo "  Resultados de búsqueda: $output_dir/search_results.qza"
+    echo "Log detallado: $log_file"
+else
+    echo "Error en la clasificación. Revise $log_file" >&2
+    exit 1
+fi
 
-echo "Clasificación completada. Archivos .qza disponibles en: $output_dir"
+echo "Clasificación finalizada. Archivos .qza disponibles en: $output_dir"
