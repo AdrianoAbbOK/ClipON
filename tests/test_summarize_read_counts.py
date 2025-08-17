@@ -1,6 +1,8 @@
-import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+from summarize_read_counts import summarize_counts
 
 
 def write_stats(path, n):
@@ -14,30 +16,14 @@ def test_cleaned_files_update_filtered(tmp_path):
     write_stats(tmp_path / "cleaned_CAV_37C01C_filtered_stats.tsv", 3)
     write_stats(tmp_path / "cleaned_SAV_926008_filtered_stats.tsv", 4)
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "summarize_read_counts.py"
-    result = subprocess.run(
-        [sys.executable, str(script), str(tmp_path)],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    counts = summarize_counts(str(tmp_path), {})
 
-    lines = result.stdout.strip().splitlines()
-    table = {}
-    for line in lines[1:]:
-        sample, raw, processed, filtered = line.split("\t")
-        table[sample] = {
-            "raw": int(raw),
-            "processed": int(processed),
-            "filtered": int(filtered),
-        }
-
-    assert table["CAV_37C01C"]["raw"] == 2
-    assert table["CAV_37C01C"]["filtered"] == 3
-    assert table["SAV_926008"]["raw"] == 2
-    assert table["SAV_926008"]["filtered"] == 4
-    assert "cleaned_CAV_37C01C" not in table
-    assert "cleaned_SAV_926008" not in table
+    assert counts["CAV_37C01C"]["raw"] == 2
+    assert counts["CAV_37C01C"]["filtered"] == 3
+    assert counts["SAV_926008"]["raw"] == 2
+    assert counts["SAV_926008"]["filtered"] == 4
+    assert "cleaned_CAV_37C01C" not in counts
+    assert "cleaned_SAV_926008" not in counts
 
 
 def test_trimmed_files_are_aggregated(tmp_path):
@@ -46,27 +32,11 @@ def test_trimmed_files_are_aggregated(tmp_path):
     write_stats(tmp_path / "sample_processed_stats.tsv", 4)
     write_stats(tmp_path / "sample_trimmed_processed_stats.tsv", 5)
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "summarize_read_counts.py"
-    result = subprocess.run(
-        [sys.executable, str(script), str(tmp_path)],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    counts = summarize_counts(str(tmp_path), {})
 
-    lines = result.stdout.strip().splitlines()
-    table = {}
-    for line in lines[1:]:
-        sample, raw, processed, filtered = line.split("\t")
-        table[sample] = {
-            "raw": int(raw),
-            "processed": int(processed),
-            "filtered": int(filtered),
-        }
-
-    assert table["sample"]["raw"] == 5
-    assert table["sample"]["processed"] == 9
-    assert "sample_trimmed" not in table
+    assert counts["sample"]["raw"] == 5
+    assert counts["sample"]["processed"] == 9
+    assert "sample_trimmed" not in counts
 
 
 def test_metadata_mapping(tmp_path):
@@ -77,13 +47,8 @@ def test_metadata_mapping(tmp_path):
     meta = tmp_path / "meta.tsv"
     meta.write_text("fastq\texperiment\ns1\tExpA\n")
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "summarize_read_counts.py"
-    result = subprocess.run(
-        [sys.executable, str(script), str(tmp_path), "--metadata", str(meta)],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    counts = summarize_counts(str(tmp_path), {"s1": "ExpA"})
 
-    lines = result.stdout.strip().splitlines()
-    assert lines[1].startswith("ExpA")
+    assert "ExpA" in counts
+    assert counts["ExpA"]["filtered"] == 3
+    assert "s1" not in counts
