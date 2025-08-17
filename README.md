@@ -9,7 +9,7 @@
 4. **Clustering** – `NGSpeciesID` agrupa secuencias y genera consensos.
 5. **Unificación de clusters** – se combinan los consensos de distintos experimentos.
 6. **Clasificación opcional** – el script `scripts/De3_A4_Classify_NGS.sh` usa `qiime feature-classifier classify-consensus-blast` para asignar taxonomía a los consensos unificados.
-7. **Exportación de la clasificación** – `scripts/De3_A4_Export_Classification.sh` guarda `taxonomy.qza`, `search_results.qza` y genera `taxonomy_with_sample.tsv` (con columnas *Reads* y *Sample*) en `MaxAc_5`. Además, crea `reads_per_species.tsv` con el número total de lecturas por especie y muestra.
+7. **Exportación de la clasificación** – `scripts/De3_A4_Export_Classification.sh` guarda `taxonomy.qza`, `search_results.qza` y genera `taxonomy_with_sample.tsv` (con columnas *Reads* y *Sample*) en `Results`. Además, crea `reads_per_species.tsv` con el número total de lecturas por especie y muestra.
 
 
 ## Uso rápido
@@ -21,7 +21,7 @@ Ejecuta todo el flujo con:
 ```
 El directorio `<dir_trabajo>/5_unified` contendrá los archivos de clasificación
 `taxonomy.qza` y `search_results.qza`. El paso de exportación generará copias en
-texto dentro de `5_unified/MaxAc_5`, incluyendo `taxonomy_with_sample.tsv` con
+texto dentro de `5_unified/Results`, incluyendo `taxonomy_with_sample.tsv` con
 las columnas adicionales *Reads* y *Sample* y `reads_per_species.tsv` con los
 conteos de lecturas por especie y muestra. Defina las variables de entorno
 `BLAST_DB` y `TAXONOMY_DB` apuntando a las bases de datos en formato `.qza` para
