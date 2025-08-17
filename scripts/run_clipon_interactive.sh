@@ -62,6 +62,22 @@ if [ "$MODE" = "resume" ]; then
         fi
         break
     done
+    # Permitir sobrescribir o copiar el directorio de trabajo
+    while true; do
+        read -rp "¿Desea sobrescribir el directorio de trabajo o copiar los datos a uno nuevo? (s/c) " copy_choice
+        if [[ $copy_choice =~ ^[Cc]$ ]]; then
+            read -rp "Ingrese la ruta del nuevo directorio de trabajo: " NEW_WORK_DIR
+            NEW_WORK_DIR="${NEW_WORK_DIR%/}"
+            mkdir -p "$NEW_WORK_DIR"
+            rsync -a "$WORK_DIR/" "$NEW_WORK_DIR/"
+            WORK_DIR="$NEW_WORK_DIR"
+            break
+        elif [[ $copy_choice =~ ^[Ss]$ ]]; then
+            break
+        else
+            echo "Respuesta no válida. Intente nuevamente."
+        fi
+    done
     scripts/check_pipeline_status.sh "$WORK_DIR"
     read -rp "Seleccione el paso de reanudación: " RESUME_STEP
     echo "export RESUME_STEP=\"$RESUME_STEP\"" > "$WORK_DIR/resume_config.sh"
@@ -86,9 +102,23 @@ while true; do
 done
 
 if [ "$MODE" = "new" ]; then
-    read -rp "Ingrese el directorio de trabajo donde se guardarán los resultados: " WORK_DIR
-    WORK_DIR="${WORK_DIR%/}"
-    mkdir -p "$WORK_DIR"
+    while true; do
+        read -rp "Ingrese el directorio de trabajo donde se guardarán los resultados: " WORK_DIR
+        WORK_DIR="${WORK_DIR%/}"
+        if [ -d "$WORK_DIR" ] && [ "$(ls -A "$WORK_DIR")" ]; then
+            read -rp "El directorio '$WORK_DIR' ya existe y contiene archivos. ¿Desea sobrescribirlo? (s/n) " overwrite
+            if [[ $overwrite =~ ^[Ss]$ ]]; then
+                rm -rf "$WORK_DIR"
+                mkdir -p "$WORK_DIR"
+                break
+            else
+                continue
+            fi
+        else
+            mkdir -p "$WORK_DIR"
+            break
+        fi
+    done
 fi
 
 # Solicitar rutas para bases de datos necesarias
@@ -282,12 +312,14 @@ if command -v Rscript >/dev/null 2>&1; then
         }
     echo "Gráfico de calidad vs longitud: $PLOT_FILE"
     if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
+
         if command -v chafa >/dev/null 2>&1; then
             # Mostrar el gráfico en la terminal usando chafa
             chafa "$PLOT_FILE" | less -R
         else
             echo "Instale 'chafa' para visualizar el gráfico en la terminal. Archivo: $PLOT_FILE"
         fi
+
     else
         echo "No se pudo abrir el gráfico automáticamente."
     fi
@@ -335,12 +367,14 @@ if command -v python >/dev/null 2>&1; then
             TAX_PLOT_FILE="N/A"
         }
     if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
+
         if command -v chafa >/dev/null 2>&1; then
             # Visualizar el gráfico de taxones en la terminal
             chafa "$TAX_PLOT_FILE" | less -R
         else
             echo "Instale 'chafa' para visualizar el gráfico en la terminal. Archivo: $TAX_PLOT_FILE"
         fi
+
     else
         echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
     fi

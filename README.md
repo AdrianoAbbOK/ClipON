@@ -75,7 +75,9 @@ Así evita implementar herramientas duplicadas para esta tarea.
 El script `scripts/plot_taxon_bar.py` genera un gráfico de barras apiladas con
 la proporción de lecturas por muestra. Con la opción `--code-samples` puede
 reemplazar los nombres de las muestras por códigos secuenciales (`S1`, `S2`,
-...) y guardar la tabla de equivalencias en `<salida>.sample_map.tsv`.
+...) y guardar la tabla de equivalencias en `<salida>.sample_map.tsv`. Los
+taxones se codifican siempre como `T1`, `T2`, ... y su correspondencia se
+escribe en `<salida>.taxon_map.tsv`.
 
 ```bash
 python scripts/plot_taxon_bar.py taxonomy_with_sample.tsv plot.png --code-samples
@@ -177,7 +179,9 @@ Para visualizar los gráficos generados directamente en la terminal, instale la 
 ./scripts/run_clipon_interactive.sh
 ```
 
-Si se elige reanudar, se solicitará el directorio de trabajo existente y se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado. A continuación, seleccione el paso desde el cual continuar; la elección se guarda en `resume_config.sh` y exporta la variable `RESUME_STEP` antes de llamar al pipeline.
+Si se elige reanudar, se solicitará el directorio de trabajo existente; podrá sobrescribirlo o copiarlo a un nuevo directorio. Luego se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado. A continuación, seleccione el paso desde el cual continuar; la elección se guarda en `resume_config.sh` y exporta la variable `RESUME_STEP` antes de llamar al pipeline.
+
+En un procesamiento nuevo, si el directorio de salida ya existe y contiene archivos, se pedirá confirmación antes de sobrescribirlo.
 
 ### Formato del Importing Manifest
 Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. El archivo debe tener las columnas:
