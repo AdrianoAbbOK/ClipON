@@ -19,7 +19,7 @@ if ! command -v qiime >/dev/null; then
     exit 1
 fi
 
-export_dir="$class_dir/MaxAc_5"
+export_dir="$class_dir/Results"
 mkdir -p "$export_dir"
 log_file="$export_dir/export.log"
 
