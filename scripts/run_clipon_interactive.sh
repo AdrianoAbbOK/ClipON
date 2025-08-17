@@ -428,19 +428,3 @@ echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/MaxAc_5"
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
-echo "Parámetros avanzados utilizados:"
-if [ -n "$TRIM_EXTRA_ARGS" ]; then
-    echo "  Recorte: $TRIM_EXTRA_ARGS"
-fi
-if [ -n "$FILTER_EXTRA_ARGS" ]; then
-    echo "  Filtrado: $FILTER_EXTRA_ARGS"
-fi
-if [ -n "$CLUSTER_EXTRA_ARGS" ]; then
-    echo "  Clustering: $CLUSTER_EXTRA_ARGS"
-fi
-if [ -n "$CLASSIFY_EXTRA_ARGS" ]; then
-    echo "  Clasificación: $CLASSIFY_EXTRA_ARGS"
-fi
-if [ -z "$TRIM_EXTRA_ARGS$FILTER_EXTRA_ARGS$CLUSTER_EXTRA_ARGS$CLASSIFY_EXTRA_ARGS" ]; then
-    echo "  Ninguno"
-fi
