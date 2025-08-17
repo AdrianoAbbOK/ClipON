@@ -73,7 +73,9 @@ Así evita implementar herramientas duplicadas para esta tarea.
 El script `scripts/plot_taxon_bar.py` genera un gráfico de barras apiladas con
 la proporción de lecturas por muestra. Con la opción `--code-samples` puede
 reemplazar los nombres de las muestras por códigos secuenciales (`S1`, `S2`,
-...) y guardar la tabla de equivalencias en `<salida>.sample_map.tsv`.
+...) y guardar la tabla de equivalencias en `<salida>.sample_map.tsv`. Los
+taxones se codifican siempre como `T1`, `T2`, ... y su correspondencia se
+escribe en `<salida>.taxon_map.tsv`.
 
 ```bash
 python scripts/plot_taxon_bar.py taxonomy_with_sample.tsv plot.png --code-samples
