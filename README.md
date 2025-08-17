@@ -36,11 +36,13 @@ Las rutas de entrada y salida también pueden configurarse manualmente al invoca
  - NanoFilt (debe estar instalado antes de ejecutar
    `scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh`)
  - QIIME2
- - Python con pandas y matplotlib (opcional, necesario para el gráfico de
+- Python con pandas y matplotlib (opcional, necesario para el gráfico de
    barras de taxones)
- - R (opcional, necesario para generar el gráfico de calidad vs longitud;
+- R (opcional, necesario para generar el gráfico de calidad vs longitud;
    puede instalarse con `sudo apt install r-base`)
- - msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para
+- chafa (opcional, para visualizar gráficos PNG en la terminal durante la
+  ejecución interactiva)
+- msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para
    enviar notificaciones por correo)
 
 ## Ejemplos de ejecución
@@ -169,6 +171,7 @@ directorio.  Activará los entornos Conda necesarios automáticamente.
 
 ### Asistente interactivo con reanudación
 El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
+Para visualizar los gráficos generados directamente en la terminal, instale la utilidad `chafa`.
 
 ```bash
 ./scripts/run_clipon_interactive.sh
