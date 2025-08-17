@@ -69,6 +69,16 @@ python scripts/collect_read_stats.py <archivo.fastq>
 ```
 Así evita implementar herramientas duplicadas para esta tarea.
 
+### Gráfico de barras de taxones
+El script `scripts/plot_taxon_bar.py` genera un gráfico de barras apiladas con
+la proporción de lecturas por muestra. Con la opción `--code-samples` puede
+reemplazar los nombres de las muestras por códigos secuenciales (`S1`, `S2`,
+...) y guardar la tabla de equivalencias en `<salida>.sample_map.tsv`.
+
+```bash
+python scripts/plot_taxon_bar.py taxonomy_with_sample.tsv plot.png --code-samples
+```
+
 ## Entornos Conda
 
 El repositorio incluye archivos de entorno en `envs/` y un asistente para instalarlos.
