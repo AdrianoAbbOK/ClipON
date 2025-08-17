@@ -336,44 +336,49 @@ run_step 3 clipon-prep "Paso 3: Filtrado con NanoFilt" "$FILTER_EXTRA_ARGS" \
     MIN_LEN="$MIN_LEN" MAX_LEN="$MAX_LEN" MIN_QUAL="$MIN_QUAL" \
     INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" \
     LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
+# Resumen y gráfico de calidad solo si se ejecutan los primeros pasos
+PLOT_FILE="N/A"
+if [ "$RESUME_STEP" -le 3 ]; then
+    echo -e "\nResumen de lecturas tras filtrado:"
+    python3 scripts/summarize_read_counts.py "$WORK_DIR"
 
-echo -e "\nResumen de lecturas tras filtrado:"
-python3 scripts/summarize_read_counts.py "$WORK_DIR"
+    print_section "Gráfico de calidad vs longitud"
+    if command -v Rscript >/dev/null 2>&1; then
+        PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
+            "$FILTER_DIR/read_quality_vs_length.png" \
+            "$PROCESSED_DIR"/*_processed_stats.tsv \
+            "$FILTER_DIR"/*_filtered_stats.tsv 2>&1 | tee "$WORK_DIR/r_plot.log" | tail -n 1) || {
+                echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
+                PLOT_FILE="N/A"
+            }
+        echo "Gráfico de calidad vs longitud: $PLOT_FILE"
+        if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
 
-print_section "Gráfico de calidad vs longitud"
-if command -v Rscript >/dev/null 2>&1; then
-    PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
-        "$FILTER_DIR/read_quality_vs_length.png" \
-        "$PROCESSED_DIR"/*_processed_stats.tsv \
-        "$FILTER_DIR"/*_filtered_stats.tsv 2>&1 | tee "$WORK_DIR/r_plot.log" | tail -n 1) || {
-            echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
-            PLOT_FILE="N/A"
-        }
-    echo "Gráfico de calidad vs longitud: $PLOT_FILE"
-    if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
+            if command -v eog >/dev/null 2>&1; then
+                # Abrir el gráfico en una ventana nueva usando eog
+                eog "$PLOT_FILE" >/dev/null 2>&1 &
+            elif command -v chafa >/dev/null 2>&1; then
+                # Mostrar el gráfico en la terminal usando chafa
+                chafa "$PLOT_FILE" | less -R
+            else
+                echo "Instale 'eog' o 'chafa' para visualizar el gráfico. Archivo: $PLOT_FILE"
+            fi
 
-        if command -v eog >/dev/null 2>&1; then
-            # Abrir el gráfico en una ventana nueva usando eog
-            eog "$PLOT_FILE" >/dev/null 2>&1 &
-        elif command -v chafa >/dev/null 2>&1; then
-            # Mostrar el gráfico en la terminal usando chafa
-            chafa "$PLOT_FILE" | less -R
         else
-            echo "Instale 'eog' o 'chafa' para visualizar el gráfico. Archivo: $PLOT_FILE"
+            echo "No se pudo abrir el gráfico automáticamente."
         fi
-
     else
-        echo "No se pudo abrir el gráfico automáticamente."
+        echo "Rscript no encontrado; omitiendo la generación del gráfico. Instale R, por ejemplo: 'sudo apt install r-base'."
+        PLOT_FILE="N/A"
+        echo "Gráfico de calidad vs longitud: $PLOT_FILE"
     fi
-else
-    echo "Rscript no encontrado; omitiendo la generación del gráfico. Instale R, por ejemplo: 'sudo apt install r-base'."
-    PLOT_FILE="N/A"
-    echo "Gráfico de calidad vs longitud: $PLOT_FILE"
-fi
 
-echo "El gráfico se encuentra en: $PLOT_FILE"
-read -rp "Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: " RESP
-[[ $RESP =~ ^[Ss]$ ]] || { echo "Pipeline abortado."; exit 0; }
+    echo "El gráfico se encuentra en: $PLOT_FILE"
+    read -rp "Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: " RESP
+    [[ $RESP =~ ^[Ss]$ ]] || { echo "Pipeline abortado."; exit 0; }
+else
+    echo "Omitiendo resumen de lecturas y generación del gráfico (RESUME_STEP=$RESUME_STEP > 3)."
+fi
 
 run_step 4 clipon-ngs "Paso 4: Clustering de NGSpecies" "$CLUSTER_EXTRA_ARGS" \
     M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
