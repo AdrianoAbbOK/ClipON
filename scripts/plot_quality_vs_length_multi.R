@@ -2,11 +2,27 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
-  stop("Usage: plot_quality_vs_length_multi.R <output_png> <tsv1> <tsv2> [<tsv3> ...]")
+  stop(
+    "Usage: plot_quality_vs_length_multi.R <output_png> [--metadata <file>] <tsv1> <tsv2> ..."
+  )
 }
 
 output_png <- normalizePath(args[1], mustWork = FALSE)
-input_files <- args[-1]
+args <- args[-1]
+
+metadata <- NULL
+if (length(args) >= 2 && args[1] == "--metadata") {
+  metadata <- readr::read_tsv(args[2], show_col_types = FALSE)
+  args <- args[-c(1, 2)]
+}
+
+map_sample <- NULL
+if (!is.null(metadata)) {
+  fastq_names <- tools::file_path_sans_ext(basename(metadata$fastq))
+  map_sample <- setNames(metadata$experiment, fastq_names)
+}
+
+input_files <- args
 
 suppressPackageStartupMessages({
   library(ggplot2)
@@ -16,12 +32,13 @@ suppressPackageStartupMessages({
 # Read each TSV and add a group column based on filename
 get_group <- function(path) {
   fname <- basename(path)
-  m <- regmatches(fname, regexpr("(processed|filtered)_stats\\.tsv$", fname))
-  if (length(m) == 1) {
-    sub("_stats.tsv", "", m)
-  } else {
-    tools::file_path_sans_ext(fname)
+  sample <- sub("_(raw|processed|filtered)_stats\\.tsv$", "", fname)
+  sample <- sub("^cleaned_", "", sample)
+  sample <- sub("_trimmed$", "", sample)
+  if (!is.null(map_sample) && sample %in% names(map_sample)) {
+    sample <- map_sample[[sample]]
   }
+  sample
 }
 
 data_list <- lapply(input_files, function(f) {

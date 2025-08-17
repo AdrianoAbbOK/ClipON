@@ -19,6 +19,16 @@ Ejecuta todo el flujo con:
 ```bash
 ./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 ```
+
+Para reemplazar los nombres de los archivos FASTQ por identificadores de
+experimento, proporcione un archivo de metadata con columnas `fastq` y
+`experiment`:
+
+```bash
+./scripts/run_clipon_pipeline.sh --metadata fastq_metadata.tsv <dir_fastq_entrada> <dir_trabajo>
+```
+Consulte [docs/metadata_example.md](docs/metadata_example.md) para un ejemplo de
+formato.
 El directorio `<dir_trabajo>/5_unified` contendrá los archivos de clasificación
 `taxonomy.qza` y `search_results.qza`. El paso de exportación generará copias en
 texto dentro de `5_unified/Results`, incluyendo `taxonomy_with_sample.tsv` con
@@ -74,14 +84,16 @@ Así evita implementar herramientas duplicadas para esta tarea.
 
 ### Gráfico de barras de taxones
 El script `scripts/plot_taxon_bar.py` genera un gráfico de barras apiladas con
-la proporción de lecturas por muestra. Con la opción `--code-samples` puede
-reemplazar los nombres de las muestras por códigos secuenciales (`M1`, `M2`,
-...) y guardar la tabla de equivalencias en `<salida>.sample_map.tsv`. Los
-taxones se codifican siempre como `T1`, `T2`, ... y su correspondencia se
-escribe en `<salida>.taxon_map.tsv`.
+la proporción de lecturas por muestra. Puede asignar nombres de experimento a
+las muestras con `--metadata <archivo>` y, opcionalmente, reemplazar los nombres
+por códigos secuenciales (`M1`, `M2`, ...) con `--code-samples`, guardando la
+tabla de equivalencias en `<salida>.sample_map.tsv`. Los taxones se codifican
+siempre como `T1`, `T2`, ... y su correspondencia se escribe en
+`<salida>.taxon_map.tsv`.
 
 ```bash
-python scripts/plot_taxon_bar.py taxonomy_with_sample.tsv plot.png --code-samples
+python scripts/plot_taxon_bar.py taxonomy_with_sample.tsv plot.png \
+    --metadata fastq_metadata.tsv --code-samples
 ```
 
 ## Entornos Conda

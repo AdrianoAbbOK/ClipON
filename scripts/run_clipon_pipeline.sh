@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Wrapper para ejecutar la cadena completa de procesamiento de ClipON
-# Uso: ./run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
+# Uso: ./run_clipon_pipeline.sh [--metadata <archivo>] <dir_fastq_entrada> <dir_trabajo>
 # El directorio de trabajo contendrá subcarpetas para cada etapa
 
 # Para un gráfico avanzado de la calidad de lectura combine los TSV generados en cada etapa (collect_read_stats.py):
@@ -17,8 +17,21 @@ cd "$ROOT_DIR"
 # Inicializar conda y activar entornos según la etapa
 source "$(conda info --base)/etc/profile.d/conda.sh"
 
+METADATA_FILE=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --metadata)
+            METADATA_FILE="${2:-}"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
 if [ "$#" -ne 2 ]; then
-    echo "Uso: $0 <dir_fastq_entrada> <dir_trabajo>"
+    echo "Uso: $0 [--metadata <archivo>] <dir_fastq_entrada> <dir_trabajo>"
     exit 1
 fi
 
@@ -85,13 +98,14 @@ run_step 2 clipon-prep trim_reads
 run_step 3 clipon-prep INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
 
 echo -e "\nResumen de lecturas tras filtrado:"
-python3 scripts/summarize_read_counts.py "$WORK_DIR"
+python3 scripts/summarize_read_counts.py "$WORK_DIR" ${METADATA_FILE:+--metadata "$METADATA_FILE"}
 
 # Generar gráfico de calidad vs longitud para múltiples etapas
 # Se captura solo la última línea para obtener la ruta del archivo generado
 if command -v Rscript >/dev/null 2>&1; then
     PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
         "$FILTER_DIR/read_quality_vs_length.png" \
+        ${METADATA_FILE:+--metadata "$METADATA_FILE"} \
         "$PROCESSED_DIR"/*_processed_stats.tsv \
         "$FILTER_DIR"/*_filtered_stats.tsv 2>&1 | tee "$WORK_DIR/r_plot.log" | tail -n 1) || {
             echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
@@ -113,7 +127,7 @@ if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
 fi
 
 run_step 6 clipon-qiime classify_reads
-run_step 7 clipon-qiime bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+run_step 7 clipon-qiime METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
 
@@ -122,7 +136,7 @@ if command -v python >/dev/null 2>&1; then
     TAX_PLOT_FILE=$(python scripts/plot_taxon_bar.py \
         "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
         "$UNIFIED_DIR/Results/taxon_stacked_bar.png" \
-        --code-samples 2>&1 | \
+        ${METADATA_FILE:+--metadata "$METADATA_FILE"} --code-samples 2>&1 | \
         tee -a "$WORK_DIR/taxon_plot.log" | tail -n 1) || {
             echo "Fallo en python: revisar dependencias" >> "$WORK_DIR/taxon_plot.log"
             TAX_PLOT_FILE="N/A"

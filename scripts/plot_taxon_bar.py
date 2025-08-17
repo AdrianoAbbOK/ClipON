@@ -35,6 +35,10 @@ def parse_args() -> argparse.Namespace:
             "<output>.sample_map.tsv"
         ),
     )
+    parser.add_argument(
+        "--metadata",
+        help="TSV/CSV with columns 'fastq' and 'experiment' to rename samples",
+    )
     return parser.parse_args()
 
 
@@ -44,6 +48,12 @@ def main() -> None:
     out_path = Path(args.output)
 
     data = pd.read_csv(in_path, sep="\t", dtype=str)
+
+    if args.metadata:
+        meta = pd.read_csv(args.metadata, sep="\t", dtype=str)
+        meta["fastq"] = meta["fastq"].apply(lambda x: Path(x).stem)
+        mapping = dict(zip(meta["fastq"], meta["experiment"]))
+        data["Sample"] = data["Sample"].map(lambda s: mapping.get(s, s))
 
     data["Reads"] = pd.to_numeric(data["Reads"], errors="coerce")
     data["Taxon"] = data["Taxon"].fillna("").replace("", "Unassigned")

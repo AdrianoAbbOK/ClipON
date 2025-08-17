@@ -40,7 +40,12 @@ qiime tools export \
     >>"$log_file" 2>&1
 
 # Generar tabla con columnas adicionales de lecturas y muestra
-python3 "$(dirname "$0")/add_reads_and_sample.py" "$export_dir/taxonomy.tsv" >>"$log_file" 2>&1
+if [[ -n "${METADATA_FILE:-}" ]]; then
+    python3 "$(dirname "$0")/add_reads_and_sample.py" \
+        --metadata "$METADATA_FILE" "$export_dir/taxonomy.tsv" >>"$log_file" 2>&1
+else
+    python3 "$(dirname "$0")/add_reads_and_sample.py" "$export_dir/taxonomy.tsv" >>"$log_file" 2>&1
+fi
 
 if [[ -f "$export_dir/taxonomy_with_sample.tsv" ]]; then
     echo "Exportación completada:"
