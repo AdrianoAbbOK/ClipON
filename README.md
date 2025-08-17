@@ -39,6 +39,10 @@ habilitar esta etapa.
 
 Esto creará subdirectorios dentro de `<dir_trabajo>` para cada etapa.
 Las rutas de entrada y salida también pueden configurarse manualmente al invocar cada script por separado.
+
+## Configuración
+
+Ejecuta `./setup.sh` para instalar Miniconda, crear los entornos necesarios y asegurar la presencia de `eog` para la visualización de imágenes.
 ## Requisitos
 
  - SeqKit
@@ -185,6 +189,8 @@ directorio.  Activará los entornos Conda necesarios automáticamente.
 
 ### Asistente interactivo con reanudación
 El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
+Puede recibir `--metadata <archivo>`; si no se proporciona, pedirá la ruta durante la ejecución
+después de indicar los archivos FASTQ.
 Intentará abrir las imágenes con `eog` si está instalado en el sistema.
 
 ```bash

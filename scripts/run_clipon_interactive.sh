@@ -21,7 +21,7 @@ prompt_param() {
     local friendly="$2"
     local default="$3"
     local value
-    read -p "$friendly PREDETERMINADO = [$default]: " value
+    read -r -p "$friendly PREDETERMINADO = [$default]: " value
     value=${value:-$default}
     eval "$var_name=\"$value\""
     echo "$friendly ELEGIDO : $value"
@@ -95,6 +95,7 @@ if [ "$MODE" = "resume" ]; then
     done
     scripts/check_pipeline_status.sh "$WORK_DIR"
     # Leer RESUME_STEP desde el archivo generado por check_pipeline_status.sh
+    # shellcheck source=/dev/null
     source "$WORK_DIR/resume_config.sh"
 fi
 
@@ -115,6 +116,21 @@ if [ "$MODE" = "new" ] || [ "${RESUME_STEP:-1}" -le 1 ]; then
             continue
         fi
         break
+    done
+fi
+
+# Solicitar archivo de metadata después de los FASTQ si no se proporcionó
+# por argumento
+if [ -z "$METADATA_FILE" ]; then
+    while true; do
+        read -rp "Ingrese la ruta del archivo de metadata (Enter para omitir): " METADATA_FILE
+        if [ -z "$METADATA_FILE" ]; then
+            break
+        elif [ -f "$METADATA_FILE" ]; then
+            break
+        else
+            echo "El archivo '$METADATA_FILE' no existe. Intente nuevamente."
+        fi
     done
 fi
 
@@ -159,114 +175,146 @@ while true; do
     break
 done
 
-echo "========================================================="
-echo "Configuración de parametros para el procesamiento"
-echo "-->Aparecerá la variable y el valor estandarizado:"
-echo "-->Modifique con un valor nuevo o presione enter para mantener el valor estandar"
-echo "========================================================="
+read -rp "¿Desea usar todos los parámetros predeterminados optimizados para COI-FishMock? (s/n) " use_defaults
+if [[ $use_defaults =~ ^[Ss]$ ]]; then
+    USE_DEFAULTS=1
+else
+    USE_DEFAULTS=0
+fi
 
-if [ "${RESUME_STEP:-1}" -le 2 ]; then
-    print_section "Paso 2: Recorte de secuencias"
+if [ "$USE_DEFAULTS" -eq 0 ]; then
+    echo "========================================================="
+    echo "Configuración de parametros para el procesamiento"
+    echo "-->Aparecerá la variable y el valor estandarizado:"
+    echo "-->Modifique con un valor nuevo o presione enter para mantener el valor estandar"
+    echo "========================================================="
 
-    read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
-    DEFAULT_TRIM_FRONT=0
-    DEFAULT_TRIM_BACK=0
-    if [[ $do_trim =~ ^[Yy]$ ]]; then
-        prompt_param TRIM_FRONT "Número de bases a recortar del inicio" "$DEFAULT_TRIM_FRONT"
-        prompt_param TRIM_BACK "Número de bases a recortar del final" "$DEFAULT_TRIM_BACK"
-        SKIP_TRIM=0
+    if [ "${RESUME_STEP:-1}" -le 2 ]; then
+        print_section "Paso 2: Recorte de secuencias"
+
+        read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
+        DEFAULT_TRIM_FRONT=0
+        DEFAULT_TRIM_BACK=0
+        if [[ $do_trim =~ ^[Yy]$ ]]; then
+            prompt_param TRIM_FRONT "Número de bases a recortar del inicio" "$DEFAULT_TRIM_FRONT"
+            prompt_param TRIM_BACK "Número de bases a recortar del final" "$DEFAULT_TRIM_BACK"
+            SKIP_TRIM=0
+        else
+            SKIP_TRIM=1
+            TRIM_FRONT=$DEFAULT_TRIM_FRONT
+            TRIM_BACK=$DEFAULT_TRIM_BACK
+        fi
     else
         SKIP_TRIM=1
-        TRIM_FRONT=$DEFAULT_TRIM_FRONT
-        TRIM_BACK=$DEFAULT_TRIM_BACK
+        TRIM_FRONT=0
+        TRIM_BACK=0
+    fi
+
+    if [ "${RESUME_STEP:-1}" -le 3 ]; then
+        print_section "Paso 3: Filtrado con NanoFilt"
+        DEFAULT_MIN_LEN=650
+        DEFAULT_MAX_LEN=750
+        DEFAULT_MIN_QUAL=10
+        prompt_param MIN_LEN "  Longitud mínima" "$DEFAULT_MIN_LEN"
+        prompt_param MAX_LEN "  Longitud máxima" "$DEFAULT_MAX_LEN"
+        prompt_param MIN_QUAL "  Calidad mínima" "$DEFAULT_MIN_QUAL"
+    else
+        MIN_LEN=650
+        MAX_LEN=750
+        MIN_QUAL=10
+    fi
+
+    if [ "${RESUME_STEP:-1}" -le 4 ]; then
+        print_section "Paso 4: Clustering de NGSpecies"
+        DEFAULT_M_LEN=700
+        DEFAULT_SUPPORT=150
+        DEFAULT_THREADS=16
+        DEFAULT_QUAL=10
+        DEFAULT_RC_ID=0.98
+        DEFAULT_ABUND_RATIO=0.01
+        prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
+        prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
+        prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
+        prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
+        prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
+        prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
+    else
+        M_LEN=700
+        SUPPORT=150
+        THREADS=16
+        QUAL=10
+        RC_ID=0.98
+        ABUND_RATIO=0.01
+    fi
+
+    if [ "${RESUME_STEP:-1}" -le 6 ]; then
+        print_section "Paso 6: Clasificación taxonómica"
+        DEFAULT_NUM_THREADS=5
+        DEFAULT_PERC_ID=0.8
+        DEFAULT_QUERY_COV=0.8
+        DEFAULT_MAX_ACCEPTS=1
+        DEFAULT_MIN_CONSENSUS=0.51
+        prompt_param NUM_THREADS "  Número de hilos (--p-num-threads)" "$DEFAULT_NUM_THREADS"
+        prompt_param PERC_ID "  Identidad mínima (--p-perc-identity)" "$DEFAULT_PERC_ID"
+        prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY_COV"
+        prompt_param MAX_ACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAX_ACCEPTS"
+        prompt_param MIN_CONSENSUS "  Consenso mínimo (--p-min-consensus)" "$DEFAULT_MIN_CONSENSUS"
+    else
+        NUM_THREADS=5
+        PERC_ID=0.8
+        QUERY_COV=0.8
+        MAX_ACCEPTS=1
+        MIN_CONSENSUS=0.51
+    fi
+
+    print_section "Parámetros avanzados (opcional)"
+    if [ "${RESUME_STEP:-1}" -le 2 ]; then
+        read -rp "¿Agregar parámetros avanzados al recorte? (s/n) " resp
+        if [[ $resp =~ ^[Ss]$ ]]; then
+            read -rp "  Parámetros para recorte: " TRIM_EXTRA_ARGS
+        fi
+    fi
+    if [ "${RESUME_STEP:-1}" -le 3 ]; then
+        read -rp "¿Agregar parámetros avanzados al filtrado? (s/n) " resp
+        if [[ $resp =~ ^[Ss]$ ]]; then
+            read -rp "  Parámetros para filtrado: " FILTER_EXTRA_ARGS
+        fi
+    fi
+    if [ "${RESUME_STEP:-1}" -le 4 ]; then
+        read -rp "¿Agregar parámetros avanzados al clustering? (s/n) " resp
+        if [[ $resp =~ ^[Ss]$ ]]; then
+            read -rp "  Parámetros para clustering: " CLUSTER_EXTRA_ARGS
+        fi
+    fi
+    if [ "${RESUME_STEP:-1}" -le 6 ]; then
+        read -rp "¿Agregar parámetros avanzados a la clasificación? (s/n) " resp
+        if [[ $resp =~ ^[Ss]$ ]]; then
+            read -rp "  Parámetros para clasificación: " CLASSIFY_EXTRA_ARGS
+        fi
     fi
 else
+    echo "Usando parámetros predeterminados para COI-FishMock."
     SKIP_TRIM=1
     TRIM_FRONT=0
     TRIM_BACK=0
-fi
-
-if [ "${RESUME_STEP:-1}" -le 3 ]; then
-    print_section "Paso 3: Filtrado con NanoFilt"
-    DEFAULT_MIN_LEN=650
-    DEFAULT_MAX_LEN=750
-    DEFAULT_MIN_QUAL=10
-    prompt_param MIN_LEN "  Longitud mínima" "$DEFAULT_MIN_LEN"
-    prompt_param MAX_LEN "  Longitud máxima" "$DEFAULT_MAX_LEN"
-    prompt_param MIN_QUAL "  Calidad mínima" "$DEFAULT_MIN_QUAL"
-else
     MIN_LEN=650
     MAX_LEN=750
     MIN_QUAL=10
-fi
-
-if [ "${RESUME_STEP:-1}" -le 4 ]; then
-    print_section "Paso 4: Clustering de NGSpecies"
-    DEFAULT_M_LEN=700
-    DEFAULT_SUPPORT=150
-    DEFAULT_THREADS=16
-    DEFAULT_QUAL=10
-    DEFAULT_RC_ID=0.98
-    DEFAULT_ABUND_RATIO=0.01
-    prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
-    prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
-    prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
-    prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
-    prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
-    prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
-else
     M_LEN=700
     SUPPORT=150
     THREADS=16
     QUAL=10
     RC_ID=0.98
     ABUND_RATIO=0.01
-fi
-
-if [ "${RESUME_STEP:-1}" -le 6 ]; then
-    print_section "Paso 6: Clasificación taxonómica"
-    DEFAULT_NUM_THREADS=5
-    DEFAULT_PERC_ID=0.8
-    DEFAULT_QUERY_COV=0.8
-    DEFAULT_MAX_ACCEPTS=1
-    DEFAULT_MIN_CONSENSUS=0.51
-    prompt_param NUM_THREADS "  Número de hilos (--p-num-threads)" "$DEFAULT_NUM_THREADS"
-    prompt_param PERC_ID "  Identidad mínima (--p-perc-identity)" "$DEFAULT_PERC_ID"
-    prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY_COV"
-    prompt_param MAX_ACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAX_ACCEPTS"
-    prompt_param MIN_CONSENSUS "  Consenso mínimo (--p-min-consensus)" "$DEFAULT_MIN_CONSENSUS"
-else
     NUM_THREADS=5
     PERC_ID=0.8
     QUERY_COV=0.8
     MAX_ACCEPTS=1
     MIN_CONSENSUS=0.51
-fi
-
-print_section "Parámetros avanzados (opcional)"
-if [ "${RESUME_STEP:-1}" -le 2 ]; then
-    read -rp "¿Agregar parámetros avanzados al recorte? (s/n) " resp
-    if [[ $resp =~ ^[Ss]$ ]]; then
-        read -rp "  Parámetros para recorte: " TRIM_EXTRA_ARGS
-    fi
-fi
-if [ "${RESUME_STEP:-1}" -le 3 ]; then
-    read -rp "¿Agregar parámetros avanzados al filtrado? (s/n) " resp
-    if [[ $resp =~ ^[Ss]$ ]]; then
-        read -rp "  Parámetros para filtrado: " FILTER_EXTRA_ARGS
-    fi
-fi
-if [ "${RESUME_STEP:-1}" -le 4 ]; then
-    read -rp "¿Agregar parámetros avanzados al clustering? (s/n) " resp
-    if [[ $resp =~ ^[Ss]$ ]]; then
-        read -rp "  Parámetros para clustering: " CLUSTER_EXTRA_ARGS
-    fi
-fi
-if [ "${RESUME_STEP:-1}" -le 6 ]; then
-    read -rp "¿Agregar parámetros avanzados a la clasificación? (s/n) " resp
-    if [[ $resp =~ ^[Ss]$ ]]; then
-        read -rp "  Parámetros para clasificación: " CLASSIFY_EXTRA_ARGS
-    fi
+    TRIM_EXTRA_ARGS=""
+    FILTER_EXTRA_ARGS=""
+    CLUSTER_EXTRA_ARGS=""
+    CLASSIFY_EXTRA_ARGS=""
 fi
 
 echo "========================================================="
@@ -314,6 +362,7 @@ fi
 echo "========================================================="
 echo "Iniciando pipeline..."
 
+# shellcheck source=/dev/null
 source "$(conda info --base)/etc/profile.d/conda.sh"
 RESUME_STEP="${RESUME_STEP:-1}"
 
@@ -406,7 +455,6 @@ if [ "${RESUME_STEP:-1}" -le 3 ]; then
                 echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
                 PLOT_FILE="N/A"
             }
-        echo "Gráfico de calidad vs longitud: $PLOT_FILE"
         if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
 
             if command -v eog >/dev/null 2>&1; then
@@ -425,12 +473,21 @@ if [ "${RESUME_STEP:-1}" -le 3 ]; then
     else
         echo "Rscript no encontrado; omitiendo la generación del gráfico. Instale R, por ejemplo: 'sudo apt install r-base'."
         PLOT_FILE="N/A"
-        echo "Gráfico de calidad vs longitud: $PLOT_FILE"
     fi
 
     echo "El gráfico se encuentra en: $PLOT_FILE"
-    read -rp "Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: " RESP
-    [[ $RESP =~ ^[Ss]$ ]] || { echo "Pipeline abortado."; exit 0; }
+    # Solicitar confirmación con un temporizador de 30 segundos
+    PROMPT="Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: "
+    RESP=""
+    for i in $(seq 30 -1 1); do
+        printf '\r%s (continuando automáticamente en %02ds) ' "$PROMPT" "$i"
+        read -r -t 1 -n 1 RESP && break
+    done
+    echo
+    if [[ -n "$RESP" ]] && [[ ! $RESP =~ ^[Ss]$ ]]; then
+        echo "Pipeline abortado."
+        exit 0
+    fi
 else
     echo "Omitiendo resumen de lecturas y generación del gráfico (RESUME_STEP=${RESUME_STEP:-1} > 3)."
 fi
@@ -470,7 +527,6 @@ if command -v python >/dev/null 2>&1; then
             TAX_PLOT_FILE="N/A"
         }
     if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
-
         if command -v eog >/dev/null 2>&1; then
             # Abrir el gráfico de taxones en una ventana nueva
             eog "$TAX_PLOT_FILE" >/dev/null 2>&1 &
@@ -478,15 +534,15 @@ if command -v python >/dev/null 2>&1; then
             # Visualizar el gráfico de taxones en la terminal
             chafa "$TAX_PLOT_FILE" | less -R
         else
-            echo "Instale 'eog' o 'chafa' para visualizar el gráfico. Archivo: $TAX_PLOT_FILE"
+            echo "Instale 'eog' o 'chafa' para visualizar el gráfico."
         fi
-
     else
-        echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
+        echo "No se pudo generar el gráfico de taxones. Revise $WORK_DIR/taxon_plot.log"
     fi
 else
     echo "Python no encontrado; omitiendo la generación del gráfico de taxones."
 fi
+echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
 
 print_section "Lecturas por especie"
 python3 scripts/collapse_reads_by_species.py \

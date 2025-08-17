@@ -23,6 +23,31 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
+KNOWN_PREFIXES = ["cleaned_", "filtered_", "trimmed_"]
+KNOWN_SUFFIXES = ["_trimmed", "_filtered", "_cleaned"]
+
+
+def clean_fastq_name(name: str) -> str:
+    """Return the original FASTQ name without common processing tags."""
+    for prefix in KNOWN_PREFIXES:
+        if name.startswith(prefix):
+            name = name[len(prefix) :]
+    for suffix in KNOWN_SUFFIXES:
+        if name.endswith(suffix):
+            name = name[: -len(suffix)]
+    return name
+
+
+def rename_sample(s: str, mapping: dict[str, str]) -> str:
+    """Rename sample ``s`` using ``mapping`` with partial matches.
+
+    If no metadata match is found, return the cleaned FASTQ name.
+    """
+    for key, value in mapping.items():
+        if key in s:
+            return value
+    return clean_fastq_name(s)
+
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -50,11 +75,12 @@ def main() -> None:
 
     data = pd.read_csv(in_path, sep="\t", dtype=str)
 
+    mapping: dict[str, str] = {}
     if args.metadata:
         meta = pd.read_csv(args.metadata, sep="\t", dtype=str)
         meta["fastq"] = meta["fastq"].apply(lambda x: Path(x).stem)
         mapping = dict(zip(meta["fastq"], meta["experiment"]))
-        data["Sample"] = data["Sample"].map(lambda s: mapping.get(s, s))
+    data["Sample"] = data["Sample"].map(lambda s: rename_sample(s, mapping))
 
     data["Reads"] = pd.to_numeric(data["Reads"], errors="coerce")
     data["Taxon"] = data["Taxon"].fillna("").replace("", "Unassigned")
