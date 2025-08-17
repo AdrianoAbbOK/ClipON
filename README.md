@@ -174,7 +174,9 @@ El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeli
 ./scripts/run_clipon_interactive.sh
 ```
 
-Si se elige reanudar, se solicitará el directorio de trabajo existente y se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado. A continuación, seleccione el paso desde el cual continuar; la elección se guarda en `resume_config.sh` y exporta la variable `RESUME_STEP` antes de llamar al pipeline.
+Si se elige reanudar, se solicitará el directorio de trabajo existente; podrá sobrescribirlo o copiarlo a un nuevo directorio. Luego se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado. A continuación, seleccione el paso desde el cual continuar; la elección se guarda en `resume_config.sh` y exporta la variable `RESUME_STEP` antes de llamar al pipeline.
+
+En un procesamiento nuevo, si el directorio de salida ya existe y contiene archivos, se pedirá confirmación antes de sobrescribirlo.
 
 ### Formato del Importing Manifest
 Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. El archivo debe tener las columnas:
