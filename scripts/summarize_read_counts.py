@@ -57,8 +57,7 @@ for stage, pattern in patterns.items():
 
         counts[base][stage] += num
 
-print("archivo------
-\traw\tprocessed\tfiltered")
+print("sample\traw\tprocessed\tfiltered")
 for sample in sorted(counts):
     data = counts[sample]
     print(f"{sample}\t{data['raw']}\t{data['processed']}\t{data['filtered']}")
