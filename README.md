@@ -10,6 +10,7 @@
 5. **Unificación de clusters** – se combinan los consensos de distintos experimentos.
 6. **Clasificación opcional** – el script `scripts/De3_A4_Classify_NGS.sh` usa `qiime feature-classifier classify-consensus-blast` para asignar taxonomía a los consensos unificados.
 7. **Exportación de la clasificación** – `scripts/De3_A4_Export_Classification.sh` guarda `taxonomy.qza`, `search_results.qza` y genera `taxonomy_with_sample.tsv` (con columnas *Reads* y *Sample*) en `Results`. Además, crea `reads_per_species.tsv` con el número total de lecturas por especie y muestra.
+   Un flujo alternativo basado en **VSearch** permite agrupar y clasificar en un solo paso; consulte la sección [Flujo alternativo con VSearch](#flujo-alternativo-con-vsearch).
 
 
 ## Uso rápido
@@ -20,9 +21,16 @@ Ejecuta todo el flujo con:
 ./scripts/run_clipon_pipeline.sh [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
 
+
+Para usar **VSearch** en lugar de NGSpeciesID agregue el argumento `--cluster-method vsearch`:
+
+```bash
+./scripts/run_clipon_pipeline.sh --cluster-method vsearch <dir_fastq_entrada> <dir_trabajo>
+```
 Defina la variable de entorno `CLUSTER_METHOD` para elegir el método de
 clustering (`ngspecies` o `vsearch`). El valor predeterminado es
 `ngspecies`.
+
 
 Para reemplazar los nombres de los archivos FASTQ por identificadores de
 experimento, proporcione un archivo de metadata con columnas `fastq` y
@@ -157,7 +165,12 @@ Active cada entorno solo la primera vez para instalarlo. El script `run_clipon_p
 ./scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh <dir_base> <dir_salida>
 ```
 
-### Generar manifest automáticamente
+## Flujo alternativo con VSearch
+El pipeline puede omitir NGSpeciesID y realizar el agrupamiento y la clasificación en un solo paso mediante **VSearch**. Esto
+reduce la cantidad de etapas y puede ser más rápido, aunque existe un mayor riesgo de falsos positivos al no generar consensos.
+Para habilitarlo desde el wrapper utilice `--cluster-method vsearch`.
+
+### Generar manifest
 El archivo `manifest.csv` requerido por QIIME2 puede crearse con:
 
 ```bash
@@ -170,7 +183,7 @@ También puede generarse a partir de los consensos unificados:
 ./scripts/generate_manifest.sh --workdir <dir_trabajo> unified > manifest.csv
 ```
 
-### Clasificación con QIIME2
+### Clasificación con VSearch
 ```bash
 ./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh \
     --manifest manifest.tsv \
@@ -180,11 +193,15 @@ También puede generarse a partir de los consensos unificados:
     --maxaccepts 5 \
     --notify --email me@example.com
 ```
-La clasificación utiliza las variables de entorno `BLAST_DB` y `TAXONOMY_DB`
-para localizar los artefactos de referencia. Las notificaciones por correo son
-opcionales y requieren `msmtp`.
+La clasificación utiliza las variables de entorno `BLAST_DB` y `TAXONOMY_DB` para localizar los artefactos de referencia.
 
-### Ejecución completa
+**Advertencias**
+
+- `msmtp` es opcional y solo se requiere cuando se usa `--notify`.
+- El proceso puede tomar varias horas en conjuntos de datos grandes.
+- Al no generar consensos, pueden aparecer falsos positivos; revise los resultados con precaución.
+
+## Ejecución completa
 El wrapper `run_clipon_pipeline.sh` puede ejecutarse desde cualquier
 directorio.  Activará los entornos Conda necesarios automáticamente.
 
@@ -192,7 +209,7 @@ directorio.  Activará los entornos Conda necesarios automáticamente.
 ./scripts/run_clipon_pipeline.sh [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
 
-### Asistente interactivo con reanudación
+## Asistente interactivo con reanudación
 El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
 Puede recibir `--metadata <archivo>`; si no se proporciona, pedirá la ruta durante la ejecución
 después de indicar los archivos FASTQ.
@@ -220,6 +237,6 @@ Tras el resumen de configuración, el asistente permite ingresar una línea con 
 
 En un procesamiento nuevo, si el directorio de salida ya existe y contiene archivos, se pedirá confirmación antes de sobrescribirlo.
 
-### Formato del Importing Manifest
+## Formato del Importing Manifest
 Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. El archivo debe tener las columnas:
 `sample-id`, `absolute-filepath` y `direction`.
