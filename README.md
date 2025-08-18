@@ -99,15 +99,18 @@ Así evita implementar herramientas duplicadas para esta tarea.
 
 ### Gráfico de barras de taxones
 El script `scripts/plot_taxon_bar.py` genera un gráfico de barras apiladas con
-la proporción de lecturas por muestra. Puede asignar nombres de experimento a
+la proporción de lecturas por muestra a partir de la tabla producida por
+`scripts/collapse_reads_by_species.py`. Puede asignar nombres de experimento a
 las muestras con `--metadata <archivo>` y, opcionalmente, reemplazar los nombres
 por códigos secuenciales (`M1`, `M2`, ...) con `--code-samples`, guardando la
 tabla de equivalencias en `<salida>.sample_map.tsv`. Los taxones se codifican
-siempre como `T1`, `T2`, ... y su correspondencia se escribe en
+como `T1`, `T2`, ... y su correspondencia se escribe en
 `<salida>.taxon_map.tsv`.
 
 ```bash
-python scripts/plot_taxon_bar.py taxonomy_with_sample.tsv plot.png \
+python scripts/collapse_reads_by_species.py taxonomy_with_sample.tsv \
+    > species_reads.tsv
+python scripts/plot_taxon_bar.py species_reads.tsv plot.png \
     --metadata fastq_metadata.tsv --code-samples
 ```
 

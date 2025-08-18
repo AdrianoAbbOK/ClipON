@@ -413,4 +413,68 @@ if [ -n "$METADATA_FILE" ]; then
 fi
 cmd+=("$INPUT_DIR" "$WORK_DIR")
 
+run_step 4 clipon-ngs "Paso 4: Clustering de NGSpecies" "$CLUSTER_EXTRA_ARGS" \
+    M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
+    QUAL="$QUAL" RC_ID="$RC_ID" ABUND_RATIO="$ABUND_RATIO" \
+    INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
+    bash scripts/De2_A2.5_NGSpecies_Clustering.sh
+
+run_step 5 clipon-ngs "Paso 5: Unificación de clusters" "" \
+    BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" \
+    bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
+
+if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
+    echo "No se creó el archivo maestro de consensos. Abortando pipeline."
+    exit 1
+fi
+
+run_step 6 clipon-qiime "Paso 6: Clasificación taxonómica" "$CLASSIFY_EXTRA_ARGS" classify_reads
+
+run_step 7 clipon-qiime "Paso 7: Exportación de clasificación" "" \
+    METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+
+echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
+
+print_section "Gráfico de taxones"
+TAX_PLOT_FILE="N/A"
+if command -v python >/dev/null 2>&1; then
+    COLLAPSED_TAX="$UNIFIED_DIR/Results/species_reads.tsv"
+    python scripts/collapse_reads_by_species.py \
+        "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" > "$COLLAPSED_TAX"
+    TAX_PLOT_FILE=$(python scripts/plot_taxon_bar.py \
+        "$COLLAPSED_TAX" \
+        "$UNIFIED_DIR/Results/taxon_stacked_bar.png" \
+        ${METADATA_FILE:+--metadata "$METADATA_FILE"} --code-samples 2>&1 | \
+
+        tee -a "$WORK_DIR/taxon_plot.log" | tail -n 1) || {
+            echo "Fallo en python: revisar dependencias" >> "$WORK_DIR/taxon_plot.log"
+            TAX_PLOT_FILE="N/A"
+        }
+    if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
+        if command -v eog >/dev/null 2>&1; then
+            # Abrir el gráfico de taxones en una ventana nueva
+            eog "$TAX_PLOT_FILE" >/dev/null 2>&1 &
+        elif command -v chafa >/dev/null 2>&1; then
+            # Visualizar el gráfico de taxones en la terminal
+            chafa "$TAX_PLOT_FILE" | less -R
+        else
+            echo "Instale 'eog' o 'chafa' para visualizar el gráfico."
+        fi
+    else
+        echo "No se pudo generar el gráfico de taxones. Revise $WORK_DIR/taxon_plot.log"
+    fi
+else
+    echo "Python no encontrado; omitiendo la generación del gráfico de taxones."
+fi
+echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
+
+print_section "Lecturas por especie"
+python3 scripts/collapse_reads_by_species.py \
+    "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
+    | tee "$UNIFIED_DIR/Results/reads_per_species.tsv"
+echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/Results"
+
+echo "Pipeline completado. Resultados en: $WORK_DIR"
+echo "Gráfico de calidad vs longitud: $PLOT_FILE"
+
 "${cmd[@]}"

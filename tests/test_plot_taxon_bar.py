@@ -6,9 +6,14 @@ from pathlib import Path
 
 def test_sample_codes(tmp_path):
     table = (
-        "Sample\tTaxon\tReads\n" "A\tSp1\t10\n" "B\tSp2\t5\n"
+        "Sample: A\n"
+        "Species\tReads\tProportion\n"
+        "Sp1\t10\t100.00\n\n"
+        "Sample: B\n"
+        "Species\tReads\tProportion\n"
+        "Sp2\t5\t100.00\n"
     )
-    in_file = tmp_path / "taxonomy.tsv"
+    in_file = tmp_path / "collapsed.tsv"
     in_file.write_text(table)
     out_file = tmp_path / "plot.png"
 
@@ -35,8 +40,12 @@ def test_sample_codes(tmp_path):
 
 
 def test_metadata_mapping(tmp_path):
-    table = "Sample\tTaxon\tReads\nA\tSp1\t10\n"
-    in_file = tmp_path / "taxonomy.tsv"
+    table = (
+        "Sample: A\n"
+        "Species\tReads\tProportion\n"
+        "Sp1\t10\t100.00\n"
+    )
+    in_file = tmp_path / "collapsed.tsv"
     in_file.write_text(table)
     out_file = tmp_path / "plot.png"
 
@@ -66,8 +75,12 @@ def test_metadata_mapping(tmp_path):
 
 
 def test_metadata_partial_match_with_processed_names(tmp_path):
-    table = "Sample\tTaxon\tReads\ncleaned_A_trimmed\tSp1\t10\n"
-    in_file = tmp_path / "taxonomy.tsv"
+    table = (
+        "Sample: cleaned_A_trimmed\n"
+        "Species\tReads\tProportion\n"
+        "Sp1\t10\t100.00\n"
+    )
+    in_file = tmp_path / "collapsed.tsv"
     in_file.write_text(table)
     out_file = tmp_path / "plot.png"
 
@@ -97,8 +110,12 @@ def test_metadata_partial_match_with_processed_names(tmp_path):
 
 
 def test_fallback_to_clean_fastq(tmp_path):
-    table = "Sample\tTaxon\tReads\ncleaned_B_trimmed\tSp1\t10\n"
-    in_file = tmp_path / "taxonomy.tsv"
+    table = (
+        "Sample: cleaned_B_trimmed\n"
+        "Species\tReads\tProportion\n"
+        "Sp1\t10\t100.00\n"
+    )
+    in_file = tmp_path / "collapsed.tsv"
     in_file.write_text(table)
     out_file = tmp_path / "plot.png"
 
@@ -120,3 +137,33 @@ def test_fallback_to_clean_fastq(tmp_path):
     map_file = tmp_path / "plot.png.sample_map.tsv"
     content = map_file.read_text().strip().splitlines()
     assert content[1] == "M1\tB"
+
+
+def test_taxon_formatting(tmp_path):
+    table = (
+        "Sample: A\n"
+        "Species\tReads\tProportion\n"
+        "*Hoplias malabaricus*\t10\t100.00\n"
+    )
+    in_file = tmp_path / "collapsed.tsv"
+    in_file.write_text(table)
+    out_file = tmp_path / "plot.png"
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "plot_taxon_bar.py"
+    env = os.environ.copy()
+    env["MPLBACKEND"] = "Agg"
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            str(in_file),
+            str(out_file),
+        ],
+        check=True,
+        env=env,
+    )
+
+    map_file = tmp_path / "plot.png.taxon_map.tsv"
+    content = map_file.read_text().strip().splitlines()
+    assert content[0] == "code\ttaxon"
+    assert content[1] == "T1\t*Hoplias malabaricus*"
