@@ -154,6 +154,18 @@ if [ "$MODE" = "new" ]; then
     done
 fi
 
+# Definir y crear subdirectorios de trabajo
+PROCESSED_DIR="$WORK_DIR/1_processed"
+TRIM_DIR="$WORK_DIR/2_trimmed"
+FILTER_DIR="$WORK_DIR/3_filtered"
+CLUSTER_DIR="$WORK_DIR/4_clustered"
+UNIFIED_DIR="$WORK_DIR/5_unified"
+
+mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR"
+
+# Exportar variables de directorio para uso posterior
+export PROCESSED_DIR TRIM_DIR FILTER_DIR CLUSTER_DIR UNIFIED_DIR
+
 # Solicitar rutas para bases de datos necesarias
 while true; do
     read -rp "Ingrese la ruta al archivo de base de datos BLAST (.qza): " BLAST_DB
