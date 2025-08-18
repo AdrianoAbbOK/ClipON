@@ -42,6 +42,49 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
+# Inicializar conda y definir funciones auxiliares
+if command -v conda >/dev/null 2>&1; then
+    # shellcheck disable=SC1091
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+    CONDA_AVAILABLE=1
+else
+    echo "Advertencia: conda no está disponible; continuando sin entornos." >&2
+    CONDA_AVAILABLE=0
+fi
+
+# Ejecuta un paso del pipeline activando el entorno correspondiente
+run_step() {
+    local step="$1"
+    local env="$2"
+    shift 2
+    local cmd="$*"
+
+    if [ "$RESUME_STEP" -gt "$step" ]; then
+        echo "Saltando paso $step; RESUME_STEP=$RESUME_STEP"
+        return 0
+    fi
+
+    if [ "$CONDA_AVAILABLE" -eq 1 ]; then
+        conda activate "$env"
+    fi
+    eval "$cmd"
+    touch "$WORK_DIR/.step${step}_done"
+}
+
+# Clasifica lecturas usando bases de datos definidas
+classify_reads() {
+    if [[ -z "${BLAST_DB:-}" || -z "${TAXONOMY_DB:-}" ]]; then
+        echo "Advertencia: BLAST_DB o TAXONOMY_DB no están definidos. Omitiendo clasificación."
+        return 0
+    fi
+    bash scripts/De3_A4_Classify_NGS.sh \
+        "$UNIFIED_DIR/consensos_todos.fasta" \
+        "$UNIFIED_DIR" \
+        "$BLAST_DB" \
+        "$TAXONOMY_DB"
+    echo "Clasificación finalizada. Revise $UNIFIED_DIR/Results"
+}
+
 echo "========================================================="
 echo "Bienvenido al asistente de ejecución de ClipON"
 echo "Este script lo guiará para preparar e iniciar el pipeline."
