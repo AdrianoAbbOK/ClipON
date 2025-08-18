@@ -19,9 +19,12 @@ import pathlib
 import re
 import sys
 from collections import defaultdict
+from typing import Dict
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments."""
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", help="Directory containing stats TSV files")
     parser.add_argument(
@@ -31,6 +34,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_metadata(path: str | None) -> dict[str, str]:
+    """Return mapping of fastq basenames to experiment names."""
+
     mapping: dict[str, str] = {}
     if not path:
         return mapping
@@ -42,44 +47,73 @@ def load_metadata(path: str | None) -> dict[str, str]:
     return mapping
 
 
-args = parse_args()
-base_dir = args.directory
-metadata = load_metadata(args.metadata)
+def summarize_counts(
+    base_dir: str, metadata: dict[str, str]
+) -> dict[str, dict[str, int]]:
+    """Summarize read counts for all stages within ``base_dir``.
 
-if not os.path.isdir(base_dir):
-    print(f"Directory not found: {base_dir}", file=sys.stderr)
-    sys.exit(1)
+    Parameters
+    ----------
+    base_dir:
+        Directory containing stats TSV files.
+    metadata:
+        Mapping from fastq basenames to experiment names.
 
-patterns = {
-    "raw": "*_raw_stats.tsv",
-    "processed": "*_processed_stats.tsv",
-    "filtered": "*_filtered_stats.tsv",
-}
+    Returns
+    -------
+    dict[str, dict[str, int]]
+        Counts per sample with keys ``raw``, ``processed`` and ``filtered``.
+    """
 
-counts = defaultdict(lambda: {"raw": 0, "processed": 0, "filtered": 0})
+    if not os.path.isdir(base_dir):
+        raise NotADirectoryError(f"Directory not found: {base_dir}")
 
-for stage, pattern in patterns.items():
-    for path in glob.glob(os.path.join(base_dir, "**", pattern), recursive=True):
-        file_name = os.path.basename(path)
-        sample = re.sub(rf"_{stage}_stats\.tsv$", "", file_name)
-        base = re.sub(r"^cleaned_", "", sample)
-        base = re.sub(r"_trimmed$", "", base)  # unify trimmed filenames
+    patterns = {
+        "raw": "*_raw_stats.tsv",
+        "processed": "*_processed_stats.tsv",
+        "filtered": "*_filtered_stats.tsv",
+    }
 
-        # Skip duplicate "cleaned_" files for stages other than "filtered"
-        if sample.startswith("cleaned_") and stage != "filtered":
-            continue
+    counts: Dict[str, Dict[str, int]] = defaultdict(
+        lambda: {"raw": 0, "processed": 0, "filtered": 0}
+    )
 
-        try:
-            with open(path) as fh:
-                num = sum(1 for _ in fh) - 1  # subtract header
-        except OSError as e:
-            print(f"Warning: could not read {path}: {e}", file=sys.stderr)
-            num = 0
+    for stage, pattern in patterns.items():
+        for path in glob.glob(os.path.join(base_dir, "**", pattern), recursive=True):
+            file_name = os.path.basename(path)
+            sample = re.sub(rf"_{stage}_stats\.tsv$", "", file_name)
+            base = re.sub(r"^cleaned_", "", sample)
+            base = re.sub(r"_trimmed$", "", base)  # unify trimmed filenames
 
-        counts[base][stage] += num
+            # Skip duplicate "cleaned_" files for stages other than "filtered"
+            if sample.startswith("cleaned_") and stage != "filtered":
+                continue
 
-print("sample\traw\tprocessed\tfiltered")
-for sample in sorted(counts):
-    name = metadata.get(sample, sample)
-    data = counts[sample]
-    print(f"{name}\t{data['raw']}\t{data['processed']}\t{data['filtered']}")
+            try:
+                with open(path) as fh:
+                    num = sum(1 for _ in fh) - 1  # subtract header
+            except OSError as e:
+                print(f"Warning: could not read {path}: {e}", file=sys.stderr)
+                num = 0
+
+            name = metadata.get(base, base)
+            counts[name][stage] += num
+
+    return counts
+
+
+def main() -> None:
+    """CLI entry point."""
+
+    args = parse_args()
+    metadata = load_metadata(args.metadata)
+    counts = summarize_counts(args.directory, metadata)
+
+    print("sample\traw\tprocessed\tfiltered")
+    for sample in sorted(counts):
+        data = counts[sample]
+        print(f"{sample}\t{data['raw']}\t{data['processed']}\t{data['filtered']}")
+
+
+if __name__ == "__main__":
+    main()

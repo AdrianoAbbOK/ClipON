@@ -6,10 +6,11 @@
 1. **Procesamiento inicial** – se filtran secuencias corruptas con `SeqKit`.
 2. **Recorte de cebadores** – `Cutadapt` elimina bases al inicio y fin.
 3. **Filtrado de calidad y longitud** – `NanoFilt` descarta lecturas cortas o de baja calidad.
-4. **Clustering** – `NGSpeciesID` agrupa secuencias y genera consensos.
+4. **Clustering** – por defecto, `NGSpeciesID` agrupa secuencias y genera consensos; alternativamente, use `--cluster-method vsearch` para ejecutar `VSEARCH`.
 5. **Unificación de clusters** – se combinan los consensos de distintos experimentos.
 6. **Clasificación opcional** – el script `scripts/De3_A4_Classify_NGS.sh` usa `qiime feature-classifier classify-consensus-blast` para asignar taxonomía a los consensos unificados.
 7. **Exportación de la clasificación** – `scripts/De3_A4_Export_Classification.sh` guarda `taxonomy.qza`, `search_results.qza` y genera `taxonomy_with_sample.tsv` (con columnas *Reads* y *Sample*) en `Results`. Además, crea `reads_per_species.tsv` con el número total de lecturas por especie y muestra.
+   Un flujo alternativo basado en **VSearch** permite agrupar y clasificar en un solo paso; consulte la sección [Flujo alternativo con VSearch](#flujo-alternativo-con-vsearch).
 
 
 ## Uso rápido
@@ -17,15 +18,26 @@
 Ejecuta todo el flujo con:
 
 ```bash
-./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
+./scripts/run_clipon_pipeline.sh [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
+
+
+Para usar **VSearch** en lugar de NGSpeciesID agregue el argumento `--cluster-method vsearch`:
+
+```bash
+./scripts/run_clipon_pipeline.sh --cluster-method vsearch <dir_fastq_entrada> <dir_trabajo>
+```
+Defina la variable de entorno `CLUSTER_METHOD` para elegir el método de
+clustering (`ngspecies` o `vsearch`). El valor predeterminado es
+`ngspecies`.
+
 
 Para reemplazar los nombres de los archivos FASTQ por identificadores de
 experimento, proporcione un archivo de metadata con columnas `fastq` y
 `experiment`:
 
 ```bash
-./scripts/run_clipon_pipeline.sh --metadata fastq_metadata.tsv <dir_fastq_entrada> <dir_trabajo>
+./scripts/run_clipon_pipeline.sh --metadata fastq_metadata.tsv [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
 Consulte [docs/metadata_example.md](docs/metadata_example.md) para un ejemplo de
 formato.
@@ -56,8 +68,8 @@ Ejecuta `./setup.sh` para instalar Miniconda, crear los entornos necesarios y as
    puede instalarse con `sudo apt install r-base`)
 - eog (opcional, instale con `apt install eog` para abrir gráficos PNG en un
   entorno gráfico)
-- msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para
-  enviar notificaciones por correo)
+- msmtp (opcional, utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh`
+  para enviar notificaciones por correo)
 
 ## Ejemplos de ejecución
 
@@ -156,7 +168,12 @@ Active cada entorno solo la primera vez para instalarlo. El script `run_clipon_p
 ./scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh <dir_base> <dir_salida>
 ```
 
-### Generar manifest automáticamente
+## Flujo alternativo con VSearch
+El pipeline puede omitir NGSpeciesID y realizar el agrupamiento y la clasificación en un solo paso mediante **VSearch**. Esto
+reduce la cantidad de etapas y puede ser más rápido, aunque existe un mayor riesgo de falsos positivos al no generar consensos.
+Para habilitarlo desde el wrapper utilice `--cluster-method vsearch`.
+
+### Generar manifest
 El archivo `manifest.csv` requerido por QIIME2 puede crearse con:
 
 ```bash
@@ -169,32 +186,42 @@ También puede generarse a partir de los consensos unificados:
 ./scripts/generate_manifest.sh --workdir <dir_trabajo> unified > manifest.csv
 ```
 
-### Clasificación con QIIME2
+### Clasificación con VSearch
 ```bash
-./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
+./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh \
+    --manifest manifest.tsv \
+    --output-dir resultados \
+    --cluster-id 0.98 \
+    --blast-id 0.8 \
+    --maxaccepts 5 \
+    --notify --email me@example.com
 ```
-La clasificación se realiza dentro de la función `clasificar_secuencias` de dicho script.
-Para ejecutar todas las combinaciones de parámetros de forma automática puede usarse
-`scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh`. Los valores de manifiesto, prefijo,
-base de datos y correo pueden pasarse como argumentos o mediante variables de entorno:
-```bash
-MANIFEST_FILE=manifest.tsv PREFIX=prueba DIRDB=NCBI_DB EMAIL=me@example.com \
-./scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh
-```
+La clasificación utiliza las variables de entorno `BLAST_DB` y `TAXONOMY_DB` para localizar los artefactos de referencia.
 
-### Ejecución completa
+**Advertencias**
+
+- `msmtp` es opcional y solo se requiere cuando se usa `--notify`.
+- El proceso puede tomar varias horas en conjuntos de datos grandes.
+- Al no generar consensos, pueden aparecer falsos positivos; revise los resultados con precaución.
+
+## Ejecución completa
 El wrapper `run_clipon_pipeline.sh` puede ejecutarse desde cualquier
 directorio.  Activará los entornos Conda necesarios automáticamente.
 
 ```bash
-./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
+./scripts/run_clipon_pipeline.sh [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
 
-### Asistente interactivo con reanudación
+## Asistente interactivo con reanudación
 El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
 Puede recibir `--metadata <archivo>`; si no se proporciona, pedirá la ruta durante la ejecución
 después de indicar los archivos FASTQ.
 Intentará abrir las imágenes con `eog` si está instalado en el sistema.
+
+Durante la configuración se consultará qué método de clusterización utilizar (`ngspecies` o `vsearch`).
+En caso de elegir **VSearch**, se solicitarán los parámetros `cluster_identity`,
+`blast_identity` y `maxaccepts`, que se exportarán como variables de entorno al
+invocar el pipeline.
 
 ```bash
 ./scripts/run_clipon_interactive.sh
@@ -213,6 +240,6 @@ Tras el resumen de configuración, el asistente permite ingresar una línea con 
 
 En un procesamiento nuevo, si el directorio de salida ya existe y contiene archivos, se pedirá confirmación antes de sobrescribirlo.
 
-### Formato del Importing Manifest
+## Formato del Importing Manifest
 Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. El archivo debe tener las columnas:
 `sample-id`, `absolute-filepath` y `direction`.

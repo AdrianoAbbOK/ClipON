@@ -175,9 +175,23 @@ while true; do
     break
 done
 
-read -rp "¿Desea usar todos los parámetros predeterminados optimizados para COI-FishMock? (s/n) " use_defaults
-if [[ $use_defaults =~ ^[Ss]$ ]]; then
-    USE_DEFAULTS=1
+while true; do
+    read -rp "¿Qué método de clusterización desea usar? (ngspecies/vsearch) " CLUSTER_METHOD
+    CLUSTER_METHOD=${CLUSTER_METHOD,,}
+    if [[ "$CLUSTER_METHOD" == "ngspecies" || "$CLUSTER_METHOD" == "vsearch" ]]; then
+        export CLUSTER_METHOD
+        break
+    fi
+    echo "Opción no válida. Escriba 'ngspecies' o 'vsearch'."
+done
+
+if [ "$CLUSTER_METHOD" = "ngspecies" ]; then
+    read -rp "¿Desea usar todos los parámetros predeterminados optimizados para COI-FishMock? (s/n) " use_defaults
+    if [[ $use_defaults =~ ^[Ss]$ ]]; then
+        USE_DEFAULTS=1
+    else
+        USE_DEFAULTS=0
+    fi
 else
     USE_DEFAULTS=0
 fi
@@ -224,47 +238,57 @@ if [ "$USE_DEFAULTS" -eq 0 ]; then
         MIN_QUAL=10
     fi
 
-    if [ "${RESUME_STEP:-1}" -le 4 ]; then
-        print_section "Paso 4: Clustering de NGSpecies"
-        DEFAULT_M_LEN=700
-        DEFAULT_SUPPORT=150
-        DEFAULT_THREADS=16
-        DEFAULT_QUAL=10
-        DEFAULT_RC_ID=0.98
-        DEFAULT_ABUND_RATIO=0.01
-        prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
-        prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
-        prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
-        prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
-        prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
-        prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
-    else
-        M_LEN=700
-        SUPPORT=150
-        THREADS=16
-        QUAL=10
-        RC_ID=0.98
-        ABUND_RATIO=0.01
-    fi
+    if [ "$CLUSTER_METHOD" = "ngspecies" ]; then
+        if [ "${RESUME_STEP:-1}" -le 4 ]; then
+            print_section "Paso 4: Clustering de NGSpecies"
+            DEFAULT_M_LEN=700
+            DEFAULT_SUPPORT=150
+            DEFAULT_THREADS=16
+            DEFAULT_QUAL=10
+            DEFAULT_RC_ID=0.98
+            DEFAULT_ABUND_RATIO=0.01
+            prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
+            prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
+            prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
+            prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
+            prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
+            prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
+        else
+            M_LEN=700
+            SUPPORT=150
+            THREADS=16
+            QUAL=10
+            RC_ID=0.98
+            ABUND_RATIO=0.01
+        fi
 
-    if [ "${RESUME_STEP:-1}" -le 6 ]; then
-        print_section "Paso 6: Clasificación taxonómica"
-        DEFAULT_NUM_THREADS=5
-        DEFAULT_PERC_ID=0.8
-        DEFAULT_QUERY_COV=0.8
-        DEFAULT_MAX_ACCEPTS=1
-        DEFAULT_MIN_CONSENSUS=0.51
-        prompt_param NUM_THREADS "  Número de hilos (--p-num-threads)" "$DEFAULT_NUM_THREADS"
-        prompt_param PERC_ID "  Identidad mínima (--p-perc-identity)" "$DEFAULT_PERC_ID"
-        prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY_COV"
-        prompt_param MAX_ACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAX_ACCEPTS"
-        prompt_param MIN_CONSENSUS "  Consenso mínimo (--p-min-consensus)" "$DEFAULT_MIN_CONSENSUS"
+        if [ "${RESUME_STEP:-1}" -le 6 ]; then
+            print_section "Paso 6: Clasificación taxonómica"
+            DEFAULT_NUM_THREADS=5
+            DEFAULT_PERC_ID=0.8
+            DEFAULT_QUERY_COV=0.8
+            DEFAULT_MAX_ACCEPTS=1
+            DEFAULT_MIN_CONSENSUS=0.51
+            prompt_param NUM_THREADS "  Número de hilos (--p-num-threads)" "$DEFAULT_NUM_THREADS"
+            prompt_param PERC_ID "  Identidad mínima (--p-perc-identity)" "$DEFAULT_PERC_ID"
+            prompt_param QUERY_COV "  Cobertura de consulta (--p-query-cov)" "$DEFAULT_QUERY_COV"
+            prompt_param MAX_ACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAX_ACCEPTS"
+            prompt_param MIN_CONSENSUS "  Consenso mínimo (--p-min-consensus)" "$DEFAULT_MIN_CONSENSUS"
+        else
+            NUM_THREADS=5
+            PERC_ID=0.8
+            QUERY_COV=0.8
+            MAX_ACCEPTS=1
+            MIN_CONSENSUS=0.51
+        fi
     else
-        NUM_THREADS=5
-        PERC_ID=0.8
-        QUERY_COV=0.8
-        MAX_ACCEPTS=1
-        MIN_CONSENSUS=0.51
+        print_section "Paso 4: Clustering con VSearch"
+        DEFAULT_CLUSTER_IDENTITY=0.98
+        DEFAULT_BLAST_IDENTITY=0.5
+        DEFAULT_MAXACCEPTS=5
+        prompt_param CLUSTER_IDENTITY "  Identidad de clustering (--p-perc-identity)" "$DEFAULT_CLUSTER_IDENTITY"
+        prompt_param BLAST_IDENTITY "  Identidad de BLAST (--p-perc-identity)" "$DEFAULT_BLAST_IDENTITY"
+        prompt_param MAXACCEPTS "  Máximos aceptados (--p-maxaccepts)" "$DEFAULT_MAXACCEPTS"
     fi
 
     print_section "Parámetros avanzados (opcional)"
@@ -280,16 +304,18 @@ if [ "$USE_DEFAULTS" -eq 0 ]; then
             read -rp "  Parámetros para filtrado: " FILTER_EXTRA_ARGS
         fi
     fi
-    if [ "${RESUME_STEP:-1}" -le 4 ]; then
-        read -rp "¿Agregar parámetros avanzados al clustering? (s/n) " resp
-        if [[ $resp =~ ^[Ss]$ ]]; then
-            read -rp "  Parámetros para clustering: " CLUSTER_EXTRA_ARGS
+    if [ "$CLUSTER_METHOD" = "ngspecies" ]; then
+        if [ "${RESUME_STEP:-1}" -le 4 ]; then
+            read -rp "¿Agregar parámetros avanzados al clustering? (s/n) " resp
+            if [[ $resp =~ ^[Ss]$ ]]; then
+                read -rp "  Parámetros para clustering: " CLUSTER_EXTRA_ARGS
+            fi
         fi
-    fi
-    if [ "${RESUME_STEP:-1}" -le 6 ]; then
-        read -rp "¿Agregar parámetros avanzados a la clasificación? (s/n) " resp
-        if [[ $resp =~ ^[Ss]$ ]]; then
-            read -rp "  Parámetros para clasificación: " CLASSIFY_EXTRA_ARGS
+        if [ "${RESUME_STEP:-1}" -le 6 ]; then
+            read -rp "¿Agregar parámetros avanzados a la clasificación? (s/n) " resp
+            if [[ $resp =~ ^[Ss]$ ]]; then
+                read -rp "  Parámetros para clasificación: " CLASSIFY_EXTRA_ARGS
+            fi
         fi
     fi
 else
@@ -335,24 +361,34 @@ else
     echo "  Recorte en -$TRIM_FRONT y +$TRIM_BACK"
 fi
 echo " *Filtro NanoFilt: longitudes $MIN_LEN-$MAX_LEN, calidad mínima $MIN_QUAL"
-echo " *NGSpeciesID:"
-echo "    Longitud esperada del consenso: $M_LEN"
-echo "    Lecturas de soporte: $SUPPORT"
-echo "    Hilos: $THREADS"
-echo "    Calidad mínima: $QUAL"
-echo "    RC identidad: $RC_ID"
-echo "    Proporción mínima de abundancia: $ABUND_RATIO"
-echo " *Clasificación BLAST:"
-echo "    Número de hilos: $NUM_THREADS"
-echo "    Identidad mínima: $PERC_ID"
-echo "    Cobertura de consulta: $QUERY_COV"
-echo "    Máximos aceptados: $MAX_ACCEPTS"
-echo "    Consenso mínimo: $MIN_CONSENSUS"
+echo " *Método de clustering: $CLUSTER_METHOD"
+if [ "$CLUSTER_METHOD" = "ngspecies" ]; then
+    echo " *NGSpeciesID:"
+    echo "    Longitud esperada del consenso: $M_LEN"
+    echo "    Lecturas de soporte: $SUPPORT"
+    echo "    Hilos: $THREADS"
+    echo "    Calidad mínima: $QUAL"
+    echo "    RC identidad: $RC_ID"
+    echo "    Proporción mínima de abundancia: $ABUND_RATIO"
+    echo " *Clasificación BLAST:"
+    echo "    Número de hilos: $NUM_THREADS"
+    echo "    Identidad mínima: $PERC_ID"
+    echo "    Cobertura de consulta: $QUERY_COV"
+    echo "    Máximos aceptados: $MAX_ACCEPTS"
+    echo "    Consenso mínimo: $MIN_CONSENSUS"
+else
+    echo " *VSearch:"
+    echo "    cluster_identity: $CLUSTER_IDENTITY"
+    echo "    blast_identity: $BLAST_IDENTITY"
+    echo "    maxaccepts: $MAXACCEPTS"
+fi
 echo " *Parámetros avanzados:"
 echo "    Recorte: ${TRIM_EXTRA_ARGS:-ninguno}"
 echo "    Filtrado: ${FILTER_EXTRA_ARGS:-ninguno}"
 echo "    Clustering: ${CLUSTER_EXTRA_ARGS:-ninguno}"
-echo "    Clasificación: ${CLASSIFY_EXTRA_ARGS:-ninguno}"
+if [ "$CLUSTER_METHOD" = "ngspecies" ]; then
+    echo "    Clasificación: ${CLASSIFY_EXTRA_ARGS:-ninguno}"
+fi
 echo "========================================================="
 read -rp "¿Continuar con la ejecución del pipeline? (y/n) " go
 if [[ ! $go =~ ^[Yy]$ ]]; then
@@ -361,136 +397,21 @@ if [[ ! $go =~ ^[Yy]$ ]]; then
 fi
 echo "========================================================="
 echo "Iniciando pipeline..."
+CLUSTER_IDENTITY=${CLUSTER_IDENTITY:-}
+BLAST_IDENTITY=${BLAST_IDENTITY:-}
+MAXACCEPTS=${MAXACCEPTS:-}
 
-# shellcheck source=/dev/null
-source "$(conda info --base)/etc/profile.d/conda.sh"
-RESUME_STEP="${RESUME_STEP:-1}"
+export SKIP_TRIM TRIM_FRONT TRIM_BACK MIN_LEN MAX_LEN MIN_QUAL \
+    M_LEN SUPPORT THREADS QUAL RC_ID ABUND_RATIO \
+    NUM_THREADS PERC_ID QUERY_COV MAX_ACCEPTS MIN_CONSENSUS \
+    TRIM_EXTRA_ARGS FILTER_EXTRA_ARGS CLUSTER_EXTRA_ARGS CLASSIFY_EXTRA_ARGS \
+    CLUSTER_METHOD CLUSTER_IDENTITY BLAST_IDENTITY MAXACCEPTS RESUME_STEP
 
-PROCESSED_DIR="$WORK_DIR/1_processed"
-TRIM_DIR="$WORK_DIR/2_trimmed"
-FILTER_DIR="$WORK_DIR/3_filtered"
-CLUSTER_DIR="$WORK_DIR/4_clustered"
-UNIFIED_DIR="$WORK_DIR/5_unified"
-LOG_FILE="$FILTER_DIR/nanofilt.log"
-
-# Variables para parámetros avanzados opcionales
-TRIM_EXTRA_ARGS=""
-FILTER_EXTRA_ARGS=""
-CLUSTER_EXTRA_ARGS=""
-CLASSIFY_EXTRA_ARGS=""
-
-mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR"
-
-run_step() {
-    local step="$1"
-    local env="$2"
-    local header="$3"
-    local extra_args="$4"
-    shift 4
-    local cmd="$*"
-
-    if [ "${RESUME_STEP:-1}" -gt "$step" ]; then
-        echo "Saltando paso $step: $header"
-        return 0
-    fi
-
-    print_section "$header"
-    conda activate "$env"
-    if [ -n "$extra_args" ]; then
-        eval "$cmd $extra_args"
-    else
-        eval "$cmd"
-    fi
-    touch "$WORK_DIR/.step${step}_done"
-}
-
-trim_reads() {
-    if [ "$SKIP_TRIM" -eq 1 ]; then
-        echo "Omitiendo recorte de secuencias."
-        cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
-    else
-        INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" \
-            bash scripts/De1_A1.5_Trim_Fastq.sh "$@"
-    fi
-}
-
-classify_reads() {
-    if [[ -z "${BLAST_DB:-}" || -z "${TAXONOMY_DB:-}" ]]; then
-        echo "Advertencia: BLAST_DB o TAXONOMY_DB no están definidos. Omitiendo clasificación."
-        return 0
-    fi
-    NUM_THREADS="$NUM_THREADS" PERC_ID="$PERC_ID" QUERY_COV="$QUERY_COV" \
-    MAX_ACCEPTS="$MAX_ACCEPTS" MIN_CONSENSUS="$MIN_CONSENSUS" \
-    bash scripts/De3_A4_Classify_NGS.sh \
-        "$UNIFIED_DIR/consensos_todos.fasta" \
-        "$UNIFIED_DIR" \
-        "$BLAST_DB" \
-        "$TAXONOMY_DB" \
-        "$@"
-    echo "Clasificación finalizada. Revise $UNIFIED_DIR/Results"
-}
-
-run_step 1 clipon-prep "Paso 1: Procesamiento inicial de FASTQ" "" \
-    INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" \
-    bash scripts/De0_A1_Process_Fastq.4_SeqKit.sh
-
-run_step 2 clipon-prep "Paso 2: Recorte de secuencias" "$TRIM_EXTRA_ARGS" trim_reads
-run_step 3 clipon-prep "Paso 3: Filtrado con NanoFilt" "$FILTER_EXTRA_ARGS" \
-    MIN_LEN="$MIN_LEN" MAX_LEN="$MAX_LEN" MIN_QUAL="$MIN_QUAL" \
-    INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" \
-    LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
-# Resumen y gráfico de calidad solo si se ejecutan los primeros pasos
-PLOT_FILE="N/A"
-if [ "${RESUME_STEP:-1}" -le 3 ]; then
-    echo -e "\nResumen de lecturas tras filtrado:"
-    python3 scripts/summarize_read_counts.py "$WORK_DIR" ${METADATA_FILE:+--metadata "$METADATA_FILE"}
-
-    print_section "Gráfico de calidad vs longitud"
-    if command -v Rscript >/dev/null 2>&1; then
-        PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
-            "$FILTER_DIR/read_quality_vs_length.png" \
-            ${METADATA_FILE:+--metadata "$METADATA_FILE"} \
-            "$PROCESSED_DIR"/*_processed_stats.tsv \
-            "$FILTER_DIR"/*_filtered_stats.tsv 2>&1 | tee "$WORK_DIR/r_plot.log" | tail -n 1) || {
-                echo "Fallo en Rscript: revisar dependencias" >> "$WORK_DIR/r_plot.log"
-                PLOT_FILE="N/A"
-            }
-        if [ -f "$PLOT_FILE" ] && [ "$PLOT_FILE" != "N/A" ]; then
-
-            if command -v eog >/dev/null 2>&1; then
-                # Abrir el gráfico en una ventana nueva usando eog
-                eog "$PLOT_FILE" >/dev/null 2>&1 &
-            elif command -v chafa >/dev/null 2>&1; then
-                # Mostrar el gráfico en la terminal usando chafa
-                chafa "$PLOT_FILE" | less -R
-            else
-                echo "Instale 'eog' o 'chafa' para visualizar el gráfico. Archivo: $PLOT_FILE"
-            fi
-
-        else
-            echo "No se pudo abrir el gráfico automáticamente."
-        fi
-    else
-        echo "Rscript no encontrado; omitiendo la generación del gráfico. Instale R, por ejemplo: 'sudo apt install r-base'."
-        PLOT_FILE="N/A"
-    fi
-
-    echo "El gráfico se encuentra en: $PLOT_FILE"
-    # Solicitar confirmación con un temporizador de 30 segundos
-    PROMPT="Revise el gráfico y presione 's' para continuar o cualquier otra tecla para abortar: "
-    RESP=""
-    for i in $(seq 30 -1 1); do
-        printf '\r%s (continuando automáticamente en %02ds) ' "$PROMPT" "$i"
-        read -r -t 1 -n 1 RESP && break
-    done
-    echo
-    if [[ -n "$RESP" ]] && [[ ! $RESP =~ ^[Ss]$ ]]; then
-        echo "Pipeline abortado."
-        exit 0
-    fi
-else
-    echo "Omitiendo resumen de lecturas y generación del gráfico (RESUME_STEP=${RESUME_STEP:-1} > 3)."
+cmd=("scripts/run_clipon_pipeline.sh")
+if [ -n "$METADATA_FILE" ]; then
+    cmd+=(--metadata "$METADATA_FILE")
 fi
+cmd+=("$INPUT_DIR" "$WORK_DIR")
 
 run_step 4 clipon-ngs "Paso 4: Clustering de NGSpecies" "$CLUSTER_EXTRA_ARGS" \
     M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
@@ -555,3 +476,5 @@ echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/Results"
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
+
+"${cmd[@]}"
