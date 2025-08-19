@@ -4,13 +4,15 @@
 Usage:
     python scripts/plot_taxon_bar.py <taxonomy.tsv> <output.png>
     python scripts/plot_taxon_bar.py <taxonomy.tsv> <output.png> --code-samples
+    python scripts/plot_taxon_bar.py <taxonomy.tsv> <output.png> --code-taxa
 
 The input TSV must contain at least the columns Sample, Taxon and Reads.
 Empty or missing taxon names are replaced with "Unassigned" to ensure each
 sample is represented. When ``--code-samples`` is provided, samples are
 replaced by sequential codes (M1, M2, ...) and the mapping is written to
-``<output>.sample_map.tsv``. Taxa are always replaced by codes (T1, T2, ...)
-and their mapping is saved to ``<output>.taxon_map.tsv``.
+``<output>.sample_map.tsv``. Taxa are kept as is unless ``--code-taxa`` is
+provided, in which case they are replaced by codes (T1, T2, ...) and the
+mapping is saved to ``<output>.taxon_map.tsv``.
 """
 
 from __future__ import annotations
@@ -62,6 +64,14 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--code-taxa",
+        action="store_true",
+        help=(
+            "Replace taxon names with codes T1, T2, ... and save mapping to "
+            "<output>.taxon_map.tsv"
+        ),
+    )
+    parser.add_argument(
         "--metadata",
         help="TSV/CSV with columns 'fastq' and 'experiment' to rename samples",
     )
@@ -105,11 +115,12 @@ def main() -> None:
     )
 
     taxa = sorted(grouped["Taxon"].unique())
-    taxon_map = {taxon: f"T{i+1}" for i, taxon in enumerate(taxa)}
-    map_df = pd.DataFrame({"code": list(taxon_map.values()), "taxon": taxa})
-    map_path = out_path.with_suffix(out_path.suffix + ".taxon_map.tsv")
-    map_df.to_csv(map_path, sep="\t", index=False)
-    grouped["Taxon"] = grouped["Taxon"].map(taxon_map)
+    if args.code_taxa:
+        taxon_map = {taxon: f"T{i+1}" for i, taxon in enumerate(taxa)}
+        map_df = pd.DataFrame({"code": list(taxon_map.values()), "taxon": taxa})
+        map_path = out_path.with_suffix(out_path.suffix + ".taxon_map.tsv")
+        map_df.to_csv(map_path, sep="\t", index=False)
+        grouped["Taxon"] = grouped["Taxon"].map(taxon_map)
 
     pivot = grouped.pivot(index="Sample", columns="Taxon", values="Percent")
     pivot = pivot.fillna(0)
@@ -123,8 +134,9 @@ def main() -> None:
     ncol = min(n_taxa, 3)
     nrows = math.ceil(n_taxa / ncol)
     y_anchor = -0.15 * nrows
+    legend_title = "Taxon code (see TSV)" if args.code_taxa else "Species"
     ax.legend(
-        title="Taxon code (see TSV)",
+        title=legend_title,
         loc="upper center",
         bbox_to_anchor=(0.5, y_anchor),
         ncol=ncol,

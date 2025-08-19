@@ -120,3 +120,39 @@ def test_fallback_to_clean_fastq(tmp_path):
     map_file = tmp_path / "plot.png.sample_map.tsv"
     content = map_file.read_text().strip().splitlines()
     assert content[1] == "M1\tB"
+
+
+def test_taxon_coding(tmp_path):
+    table = "Sample\tTaxon\tReads\nA\tSp1\t10\nA\tSp2\t5\n"
+    in_file = tmp_path / "taxonomy.tsv"
+    in_file.write_text(table)
+    out_file = tmp_path / "plot.png"
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "plot_taxon_bar.py"
+    env = os.environ.copy()
+    env["MPLBACKEND"] = "Agg"
+    subprocess.run(
+        [sys.executable, str(script), str(in_file), str(out_file)],
+        check=True,
+        env=env,
+    )
+
+    map_file = tmp_path / "plot.png.taxon_map.tsv"
+    assert not map_file.exists()
+
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            str(in_file),
+            str(out_file),
+            "--code-taxa",
+        ],
+        check=True,
+        env=env,
+    )
+
+    content = map_file.read_text().strip().splitlines()
+    assert content[0] == "code\ttaxon"
+    assert content[1] == "T1\tSp1"
+    assert content[2] == "T2\tSp2"

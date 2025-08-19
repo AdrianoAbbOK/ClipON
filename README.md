@@ -91,13 +91,14 @@ El script `scripts/plot_taxon_bar.py` genera un gráfico de barras apiladas con
 la proporción de lecturas por muestra. Puede asignar nombres de experimento a
 las muestras con `--metadata <archivo>` y, opcionalmente, reemplazar los nombres
 por códigos secuenciales (`M1`, `M2`, ...) con `--code-samples`, guardando la
-tabla de equivalencias en `<salida>.sample_map.tsv`. Los taxones se codifican
-siempre como `T1`, `T2`, ... y su correspondencia se escribe en
-`<salida>.taxon_map.tsv`.
+tabla de equivalencias en `<salida>.sample_map.tsv`. De forma predeterminada se
+conservan los nombres de taxones, pero se pueden reemplazar por códigos
+secuenciales (`T1`, `T2`, ...) con `--code-taxa`, guardando la tabla de
+equivalencias en `<salida>.taxon_map.tsv`.
 
 ```bash
 python scripts/plot_taxon_bar.py taxonomy_with_sample.tsv plot.png \
-    --metadata fastq_metadata.tsv --code-samples
+    --metadata fastq_metadata.tsv --code-samples --code-taxa
 ```
 
 ## Entornos Conda
