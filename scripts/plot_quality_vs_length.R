@@ -6,7 +6,7 @@ if (length(args) != 1) {
 }
 
 work_dir <- args[1]
-file_cleaned <- file.path(work_dir, "read_stats_cleaned.tsv")
+file_prefilter <- file.path(work_dir, "read_stats_cleaned.tsv")
 file_filtered <- file.path(work_dir, "read_stats_650_750_Q10.tsv")
 output_png <- normalizePath(file.path(work_dir, "read_quality_vs_length.png"),
                              mustWork = FALSE)
@@ -16,13 +16,13 @@ suppressPackageStartupMessages({
   library(readr)
 })
 
-cleaned <- readr::read_tsv(file_cleaned, show_col_types = FALSE)
+prefilter <- readr::read_tsv(file_prefilter, show_col_types = FALSE)
 filtered <- readr::read_tsv(file_filtered, show_col_types = FALSE)
 
 p <- ggplot() +
   geom_point(
-    data = cleaned,
-    aes(x = length, y = mean_quality, color = "raw"),
+    data = prefilter,
+    aes(x = length, y = mean_quality, color = "pre_filter"),
     alpha = 0.4
   ) +
   geom_point(
@@ -32,8 +32,9 @@ p <- ggplot() +
   ) +
   labs(x = "Read length", y = "Mean quality score") +
   scale_color_manual(
-    values = c(raw = "#1f77b4", filtered = "#ff7f0e"),
-    name = "Dataset"
+    values = c(pre_filter = "#1f77b4", filtered = "#ff7f0e"),
+    name = "Dataset",
+    labels = c(pre_filter = "Pre-filter", filtered = "Filtered")
   ) +
 
   theme_minimal()

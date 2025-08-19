@@ -22,21 +22,29 @@ if (length(tsve) == 0) {
 data_list <- lapply(tsve, function(p) {
   df <- read.table(p, header = TRUE, sep = "\t", stringsAsFactors = FALSE)
   df$mean_quality <- as.numeric(df$mean_quality)
-  df$stage <- tools::file_path_sans_ext(basename(p))
+  fname <- basename(p)
+  if (grepl("_filtered", fname)) {
+    df$dataset <- "filtered"
+  } else {
+    df$dataset <- "pre_filter"
+  }
   df
 })
 
 df_all <- do.call(rbind, data_list)
 
-# Límites fijos para hacer comparables los gráficos entre etapas
+# Límites fijos para hacer comparables los gráficos
 max_length <- 2000
 max_quality <- 45
 
-p <- ggplot(df_all, aes(x = length, y = mean_quality, color = stage)) +
+p <- ggplot(df_all, aes(x = length, y = mean_quality, color = dataset)) +
   geom_point(alpha = 0.5, size = 0.7) +
-  scale_color_brewer(palette = "Dark2") +
+  scale_color_manual(
+    values = c(pre_filter = "#1f77b4", filtered = "#ff7f0e"),
+    labels = c(pre_filter = "Pre-filter", filtered = "Filtered")
+  ) +
   coord_cartesian(xlim = c(0, max_length), ylim = c(0, max_quality)) +
-  labs(x = "Longitud de lectura", y = "Calidad media", color = "Etapa") +
+  labs(x = "Longitud de lectura", y = "Calidad media", color = "Conjunto") +
   theme_minimal()
 
 # Guardar gráfico
