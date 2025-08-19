@@ -52,8 +52,9 @@ Ejecuta `./setup.sh` para instalar Miniconda, crear los entornos necesarios y as
  - QIIME2
 - Python con pandas y matplotlib (opcional, necesario para el gráfico de
    barras de taxones)
-- R (opcional, necesario para generar el gráfico de calidad vs longitud;
-   puede instalarse con `sudo apt install r-base`)
+- R (opcional, necesario para generar el gráfico de calidad vs longitud que
+  compara lecturas antes y después del filtrado sin distinguir el origen de
+  las muestras; puede instalarse con `sudo apt install r-base`)
 - eog (opcional, instale con `apt install eog` para abrir gráficos PNG en un
   entorno gráfico)
 - msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para
