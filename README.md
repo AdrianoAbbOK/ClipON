@@ -13,6 +13,44 @@
    Un flujo alternativo basado en **VSearch** permite agrupar y clasificar en un solo paso; consulte la sección [Flujo alternativo con VSearch](#flujo-alternativo-con-vsearch).
 
 
+## Descarga e instalación
+
+1. Descarga el último release desde la sección *Releases* de GitHub o con:
+
+```bash
+curl -L -o clipon.tar.gz https://github.com/AdrianoAbb/ClipON/releases/latest/download/ClipON.tar.gz
+tar xf clipon.tar.gz && cd ClipON
+```
+
+2. Dentro del directorio del proyecto, prepara los entornos necesarios ejecutando:
+
+```bash
+./setup.sh
+```
+
+## Uso interactivo
+
+El asistente `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo. Puede recibir `--metadata <archivo>`; si no se proporciona, pedirá la ruta durante la ejecución después de indicar los archivos FASTQ. Intentará abrir las imágenes con `eog` si está instalado en el sistema.
+
+Durante la configuración se consultará qué método de clusterización utilizar (`ngspecies` o `vsearch`). En caso de elegir **VSearch**, se solicitarán los parámetros `cluster_identity`, `blast_identity` y `maxaccepts`, que se exportarán como variables de entorno al invocar el pipeline.
+
+```bash
+./scripts/run_clipon_interactive.sh
+```
+
+Si se elige reanudar, se solicitará el directorio de trabajo existente; podrá sobrescribirlo o copiarlo a un nuevo directorio. Luego se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado y solicitar el paso desde el cual continuar. El valor elegido se guarda en `resume_config.sh` y se carga automáticamente para definir la variable `RESUME_STEP` antes de llamar al pipeline.
+
+Tras el resumen de configuración, el asistente permite ingresar una línea con parámetros adicionales que se añadirán a los comandos de los scripts internos. Esta opción ofrece flexibilidad para ajustar hilos, filtros u otros valores sin modificar directamente los scripts.
+
+```bash
+./scripts/run_clipon_interactive.sh
+# ...
+# Parámetros extra para los scripts (opcional):
+--threads 8 --max-accepts 5
+```
+
+En un procesamiento nuevo, si el directorio de salida ya existe y contiene archivos, se pedirá confirmación antes de sobrescribirlo.
+
 ## Uso rápido
 
 Ejecuta todo el flujo con:
@@ -21,40 +59,21 @@ Ejecuta todo el flujo con:
 ./scripts/run_clipon_pipeline.sh [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
 
-
 Para usar **VSearch** en lugar de NGSpeciesID agregue el argumento `--cluster-method vsearch`:
 
 ```bash
 ./scripts/run_clipon_pipeline.sh --cluster-method vsearch <dir_fastq_entrada> <dir_trabajo>
 ```
-Defina la variable de entorno `CLUSTER_METHOD` para elegir el método de
-clustering (`ngspecies` o `vsearch`). El valor predeterminado es
-`ngspecies`.
+Defina la variable de entorno `CLUSTER_METHOD` para elegir el método de clustering (`ngspecies` o `vsearch`). El valor predeterminado es `ngspecies`.
 
-
-Para reemplazar los nombres de los archivos FASTQ por identificadores de
-experimento, proporcione un archivo de metadata con columnas `fastq` y
-`experiment`:
+Para reemplazar los nombres de los archivos FASTQ por identificadores de experimento, proporcione un archivo de metadata con columnas `fastq` y `experiment`:
 
 ```bash
 ./scripts/run_clipon_pipeline.sh --metadata fastq_metadata.tsv [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
 ```
-Consulte [docs/metadata_example.md](docs/metadata_example.md) para un ejemplo de
-formato.
-El directorio `<dir_trabajo>/5_unified` contendrá los archivos de clasificación
-`taxonomy.qza` y `search_results.qza`. El paso de exportación generará copias en
-texto dentro de `5_unified/Results`, incluyendo `taxonomy_with_sample.tsv` con
-las columnas adicionales *Reads* y *Sample* y `reads_per_species.tsv` con los
-conteos de lecturas por especie y muestra. Defina las variables de entorno
-`BLAST_DB` y `TAXONOMY_DB` apuntando a las bases de datos en formato `.qza` para
-habilitar esta etapa.
+Consulte [docs/metadata_example.md](docs/metadata_example.md) para un ejemplo de formato. El directorio `<dir_trabajo>/5_unified` contendrá los archivos de clasificación `taxonomy.qza` y `search_results.qza`. El paso de exportación generará copias en texto dentro de `5_unified/Results`, incluyendo `taxonomy_with_sample.tsv` con las columnas adicionales *Reads* y *Sample* y `reads_per_species.tsv` con los conteos de lecturas por especie y muestra. Defina las variables de entorno `BLAST_DB` y `TAXONOMY_DB` apuntando a las bases de datos en formato `.qza` para habilitar esta etapa.
 
-Esto creará subdirectorios dentro de `<dir_trabajo>` para cada etapa.
-Las rutas de entrada y salida también pueden configurarse manualmente al invocar cada script por separado.
-
-## Configuración
-
-Ejecuta `./setup.sh` para instalar Miniconda, crear los entornos necesarios y asegurar la presencia de `eog` para la visualización de imágenes.
+Esto creará subdirectorios dentro de `<dir_trabajo>` para cada etapa. Las rutas de entrada y salida también pueden configurarse manualmente al invocar cada script por separado.
 ## Requisitos
 
  - SeqKit
@@ -203,42 +222,6 @@ La clasificación utiliza las variables de entorno `BLAST_DB` y `TAXONOMY_DB` pa
 - `msmtp` es opcional y solo se requiere cuando se usa `--notify`.
 - El proceso puede tomar varias horas en conjuntos de datos grandes.
 - Al no generar consensos, pueden aparecer falsos positivos; revise los resultados con precaución.
-
-## Ejecución completa
-El wrapper `run_clipon_pipeline.sh` puede ejecutarse desde cualquier
-directorio.  Activará los entornos Conda necesarios automáticamente.
-
-```bash
-./scripts/run_clipon_pipeline.sh [--cluster-method <ngspecies|vsearch>] <dir_fastq_entrada> <dir_trabajo>
-```
-
-## Asistente interactivo con reanudación
-El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
-Puede recibir `--metadata <archivo>`; si no se proporciona, pedirá la ruta durante la ejecución
-después de indicar los archivos FASTQ.
-Intentará abrir las imágenes con `eog` si está instalado en el sistema.
-
-Durante la configuración se consultará qué método de clusterización utilizar (`ngspecies` o `vsearch`).
-En caso de elegir **VSearch**, se solicitarán los parámetros `cluster_identity`,
-`blast_identity` y `maxaccepts`, que se exportarán como variables de entorno al
-invocar el pipeline.
-
-```bash
-./scripts/run_clipon_interactive.sh
-```
-
-Si se elige reanudar, se solicitará el directorio de trabajo existente; podrá sobrescribirlo o copiarlo a un nuevo directorio. Luego se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado y solicitar el paso desde el cual continuar. El valor elegido se guarda en `resume_config.sh` y se carga automáticamente para definir la variable `RESUME_STEP` antes de llamar al pipeline.
-
-Tras el resumen de configuración, el asistente permite ingresar una línea con parámetros adicionales que se añadirán a los comandos de los scripts internos. Esta opción ofrece flexibilidad para ajustar hilos, filtros u otros valores sin modificar directamente los scripts.
-
-```bash
-./scripts/run_clipon_interactive.sh
-# ...
-# Parámetros extra para los scripts (opcional):
---threads 8 --max-accepts 5
-```
-
-En un procesamiento nuevo, si el directorio de salida ya existe y contiene archivos, se pedirá confirmación antes de sobrescribirlo.
 
 ## Formato del Importing Manifest
 Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. El archivo debe tener las columnas:
