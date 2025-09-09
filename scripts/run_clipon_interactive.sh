@@ -7,8 +7,10 @@ set -euo pipefail
 # Paso 3 – ClipON-Prep-Filtering
 # Paso 4 – ClipON-Cluster-NGS-Clustering
 # Paso 5 – ClipON-Cluster-NGS-Unifying
-# Paso 6 – ClipON-Classif-AddReadsAndSample
-# Paso 7 – ClipON-Classif-ReadsPerSpecies
+# Paso 6 – ClipON-Classif-NGS
+# Paso 7 – ClipON-Classif-Export
+# Paso 8 – ClipON-Classif-AddReadsAndSample
+# Paso 9 – ClipON-Classif-PlotTaxonBar
 
 # Parámetro opcional para pasar metadata de FASTQ a experimento
 METADATA_FILE=""
@@ -48,8 +50,10 @@ STEP_CODES=(
     "ClipON-Prep-Filtering"
     "ClipON-Cluster-NGS-Clustering"
     "ClipON-Cluster-NGS-Unifying"
+    "ClipON-Classif-NGS"
+    "ClipON-Classif-Export"
     "ClipON-Classif-AddReadsAndSample"
-    "ClipON-Classif-ReadsPerSpecies"
+    "ClipON-Classif-PlotTaxonBar"
 )
 
 resolve_resume() {
@@ -284,7 +288,7 @@ if [ "$USE_DEFAULTS" -eq 0 ]; then
     fi
 
     if [ "${RESUME_STEP:-1}" -le 6 ]; then
-        print_section "Paso 6 – ClipON-Classif-AddReadsAndSample"
+        print_section "Paso 6 – ClipON-Classif-NGS"
         DEFAULT_NUM_THREADS=5
         DEFAULT_PERC_ID=0.8
         DEFAULT_QUERY_COV=0.8
@@ -414,6 +418,7 @@ TRIM_EXTRA_ARGS=""
 FILTER_EXTRA_ARGS=""
 CLUSTER_EXTRA_ARGS=""
 CLASSIFY_EXTRA_ARGS=""
+TAX_PLOT_FILE="N/A"
 
 mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR"
 
@@ -459,8 +464,8 @@ trim_reads() {
 
 classify_reads() {
     if [[ -z "${BLAST_DB:-}" || -z "${TAXONOMY_DB:-}" ]]; then
-        echo "Advertencia: BLAST_DB o TAXONOMY_DB no están definidos. Omitiendo clasificación."
-        return 0
+        echo "Error: BLAST_DB y TAXONOMY_DB deben estar definidos" >&2
+        exit 1
     fi
     NUM_THREADS="$NUM_THREADS" PERC_ID="$PERC_ID" QUERY_COV="$QUERY_COV" \
     MAX_ACCEPTS="$MAX_ACCEPTS" MIN_CONSENSUS="$MIN_CONSENSUS" \
@@ -473,17 +478,42 @@ classify_reads() {
     echo "Clasificación finalizada. Revise $UNIFIED_DIR/Results"
 }
 
-classify_and_add_reads() {
-    classify_reads "$@"
-    METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
-    echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
-}
-
-reads_per_species() {
+add_reads_and_sample() {
+    python3 scripts/ClipON-Classif-AddReadsAndSample.py \
+        "$UNIFIED_DIR/Results/taxonomy.tsv" \
+        ${METADATA_FILE:+--metadata "$METADATA_FILE"}
     python3 scripts/ClipON-Classif-ReadsPerSpecies.py \
         "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
         | tee "$UNIFIED_DIR/Results/reads_per_species.tsv"
     echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/Results"
+}
+
+plot_taxon_bar() {
+    TAX_PLOT_FILE="N/A"
+    if command -v python >/dev/null 2>&1; then
+        TAX_PLOT_FILE=$(python scripts/ClipON-Classif-PlotTaxonBar.py \
+            "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
+            "$UNIFIED_DIR/Results/taxon_stacked_bar.png" \
+            ${METADATA_FILE:+--metadata "$METADATA_FILE"} --code-samples 2>&1 | \
+            tee -a "$WORK_DIR/taxon_plot.log" | tail -n 1) || {
+                echo "Fallo en python: revisar dependencias" >> "$WORK_DIR/taxon_plot.log"
+                TAX_PLOT_FILE="N/A"
+            }
+        if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
+            if command -v eog >/dev/null 2>&1; then
+                eog "$TAX_PLOT_FILE" >/dev/null 2>&1 &
+            elif command -v chafa >/dev/null 2>&1; then
+                chafa "$TAX_PLOT_FILE" | less -R
+            else
+                echo "Instale 'eog' o 'chafa' para visualizar el gráfico."
+            fi
+        else
+            echo "No se pudo generar el gráfico de taxones. Revise $WORK_DIR/taxon_plot.log"
+        fi
+    else
+        echo "Python no encontrado; omitiendo la generación del gráfico de taxones."
+    fi
+    echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
 }
 
 run_step 1 ClipON-Prep-Cleaning clipon-prep "Paso 1 – ClipON-Prep-Cleaning" "" \
@@ -563,44 +593,14 @@ if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     exit 1
 fi
 
-run_step 6 ClipON-Classif-AddReadsAndSample clipon-qiime "Paso 6 – ClipON-Classif-AddReadsAndSample" "$CLASSIFY_EXTRA_ARGS" classify_and_add_reads
+run_step 6 ClipON-Classif-NGS clipon-qiime "Paso 6 – ClipON-Classif-NGS" "$CLASSIFY_EXTRA_ARGS" classify_reads
 
-run_step 7 clipon-qiime "Paso 7: Exportación de clasificación" "" \
+run_step 7 ClipON-Classif-Export clipon-qiime "Paso 7 – ClipON-Classif-Export" "" \
     METADATA_FILE="$METADATA_FILE" bash scripts/ClipON-Classif-Export.sh "$UNIFIED_DIR"
+run_step 8 ClipON-Classif-AddReadsAndSample clipon-qiime "Paso 8 – ClipON-Classif-AddReadsAndSample" "" add_reads_and_sample
 
-echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
-
-print_section "Gráfico de taxones"
-TAX_PLOT_FILE="N/A"
-if command -v python >/dev/null 2>&1; then
-    TAX_PLOT_FILE=$(python scripts/ClipON-Classif-PlotTaxonBar.py \
-        "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
-        "$UNIFIED_DIR/Results/taxon_stacked_bar.png" \
-        ${METADATA_FILE:+--metadata "$METADATA_FILE"} --code-samples 2>&1 | \
-
-        tee -a "$WORK_DIR/taxon_plot.log" | tail -n 1) || {
-            echo "Fallo en python: revisar dependencias" >> "$WORK_DIR/taxon_plot.log"
-            TAX_PLOT_FILE="N/A"
-        }
-    if [ -f "$TAX_PLOT_FILE" ] && [ "$TAX_PLOT_FILE" != "N/A" ]; then
-        if command -v eog >/dev/null 2>&1; then
-            # Abrir el gráfico de taxones en una ventana nueva
-            eog "$TAX_PLOT_FILE" >/dev/null 2>&1 &
-        elif command -v chafa >/dev/null 2>&1; then
-            # Visualizar el gráfico de taxones en la terminal
-            chafa "$TAX_PLOT_FILE" | less -R
-        else
-            echo "Instale 'eog' o 'chafa' para visualizar el gráfico."
-        fi
-    else
-        echo "No se pudo generar el gráfico de taxones. Revise $WORK_DIR/taxon_plot.log"
-    fi
-else
-    echo "Python no encontrado; omitiendo la generación del gráfico de taxones."
-fi
-echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
-
-run_step 7 ClipON-Classif-ReadsPerSpecies clipon-qiime "Paso 7 – ClipON-Classif-ReadsPerSpecies" "" reads_per_species
+run_step 9 ClipON-Classif-PlotTaxonBar clipon-qiime "Paso 9 – ClipON-Classif-PlotTaxonBar" "" plot_taxon_bar
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
+echo "Gráfico de taxones: $TAX_PLOT_FILE"
