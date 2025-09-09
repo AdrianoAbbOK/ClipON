@@ -8,8 +8,25 @@
 3. **Filtrado de calidad y longitud** – `NanoFilt` descarta lecturas cortas o de baja calidad.
 4. **Clustering** – `NGSpeciesID` agrupa secuencias y genera consensos.
 5. **Unificación de clusters** – se combinan los consensos de distintos experimentos.
-6. **Clasificación opcional** – el script `scripts/De3_A4_Classify_NGS.sh` usa `qiime feature-classifier classify-consensus-blast` para asignar taxonomía a los consensos unificados.
-7. **Exportación de la clasificación** – `scripts/De3_A4_Export_Classification.sh` guarda `taxonomy.qza`, `search_results.qza` y genera `taxonomy_with_sample.tsv` (con columnas *Reads* y *Sample*) en `Results`. Además, crea `reads_per_species.tsv` con el número total de lecturas por especie y muestra.
+6. **Clasificación opcional** – el script `scripts/ClipON-Classif-NGS.sh` usa `qiime feature-classifier classify-consensus-blast` para asignar taxonomía a los consensos unificados.
+7. **Exportación de la clasificación** – `scripts/ClipON-Classif-Export.sh` guarda `taxonomy.qza`, `search_results.qza` y genera `taxonomy_with_sample.tsv` (con columnas *Reads* y *Sample*) en `Results`. Además, crea `reads_per_species.tsv` con el número total de lecturas por especie y muestra.
+
+### Scripts por etapa
+
+- **ClipON-Prep**
+  - `ClipON-Prep-Cleaning.sh`
+  - `ClipON-Prep-Trimming.sh`
+  - `ClipON-Prep-Filtering.sh`
+  - `ClipON-Prep-CollectReadStats.py`
+- **ClipON-Cluster**
+  - `ClipON-Cluster-NGS-Clustering.sh`
+  - `ClipON-Cluster-NGS-Unifying.sh`
+- **ClipON-Classif**
+  - `ClipON-Classif-NGS.sh`
+  - `ClipON-Classif-Export.sh`
+  - `ClipON-Classif-AddReadsAndSample.py`
+  - `ClipON-Classif-ReadsPerSpecies.py`
+  - `ClipON-Classif-PlotTaxonBar.py`
 
 ## Instalación
 
@@ -173,15 +190,15 @@ También puede generarse a partir de los consensos unificados:
 
 ### Clasificación con QIIME2
 ```bash
-./scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh <manifest.tsv> <prefijo> <dirDB> <email> <cluster_identity> <blast_identity> <maxaccepts>
+./scripts/ClipON-Classif-NGS.sh consensos.fasta class_dir blast_db.qza taxonomy.qza
 ```
-La clasificación se realiza dentro de la función `clasificar_secuencias` de dicho script.
-Para ejecutar todas las combinaciones de parámetros de forma automática puede usarse
-`scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh`. Los valores de manifiesto, prefijo,
-base de datos y correo pueden pasarse como argumentos o mediante variables de entorno:
+El script `ClipON-Classif-NGS.sh` clasifica los consensos con BLAST empleando QIIME2. Los
+parámetros pueden ajustarse mediante variables de entorno como `NUM_THREADS`, `PERC_ID`
+o `MAX_ACCEPTS`.
+
+Tras la clasificación, exporte los resultados a un formato tabular con:
 ```bash
-MANIFEST_FILE=manifest.tsv PREFIX=prueba DIRDB=NCBI_DB EMAIL=me@example.com \
-./scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh
+./scripts/ClipON-Classif-Export.sh class_dir
 ```
 
 
