@@ -8,9 +8,9 @@ if ! command -v seqkit &> /dev/null; then
 fi
 
 # Uso:
-#   INPUT_DIR=/ruta/a/fastq OUTPUT_DIR=/ruta/a/salida ./De0_A1_Process_Fastq.4_SeqKit.sh
+#   INPUT_DIR=/ruta/a/fastq OUTPUT_DIR=/ruta/a/salida ./ClipON-Prep-Cleaning.sh
 #   o bien
-#   ./De0_A1_Process_Fastq.4_SeqKit.sh /ruta/a/fastq /ruta/a/salida
+#   ./ClipON-Prep-Cleaning.sh /ruta/a/fastq /ruta/a/salida
 
 # Directorios de entrada y salida configurables por variables o argumentos
 INPUT_DIR="${INPUT_DIR:-$1}"
@@ -35,7 +35,7 @@ if [ ! -d "$OUTPUT_DIR" ]; then
 fi
 
 # Crear o vaciar archivo de log
-printf "Log de De0_A1_Process_Fastq.4_SeqKit.sh - %s\n" "$(date)" > "$LOG_FILE"
+printf "Log de ClipON-Prep-Cleaning.sh - %s\n" "$(date)" > "$LOG_FILE"
 
 # Procesar cada archivo FASTQ en el directorio de entrada
 files_processed=0
@@ -62,8 +62,8 @@ for file in "$INPUT_DIR"/*.fastq; do
 
             # Generar estadísticas de lecturas para archivos crudos y procesados
             base_name="$(basename "$file" .fastq)"
-            python3 scripts/collect_read_stats.py "$file" "$OUTPUT_DIR/${base_name}_raw_stats.tsv"
-            python3 scripts/collect_read_stats.py "$CLEANED_FILE" "$OUTPUT_DIR/${base_name}_processed_stats.tsv"
+            python3 scripts/ClipON-Prep-CollectReadStats.py "$file" "$OUTPUT_DIR/${base_name}_raw_stats.tsv"
+            python3 scripts/ClipON-Prep-CollectReadStats.py "$CLEANED_FILE" "$OUTPUT_DIR/${base_name}_processed_stats.tsv"
         } >> "$LOG_FILE" 2>&1
     fi
 done

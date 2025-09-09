@@ -5,7 +5,7 @@ set -euo pipefail
 # Uso: ./run_clipon_pipeline.sh [--metadata <archivo>] <dir_fastq_entrada> <dir_trabajo>
 # El directorio de trabajo contendrá subcarpetas para cada etapa
 
-# Para un gráfico avanzado de la calidad de lectura combine los TSV generados en cada etapa (collect_read_stats.py):
+# Para un gráfico avanzado de la calidad de lectura combine los TSV generados en cada etapa (ClipON-Prep-CollectReadStats.py):
 # Rscript scripts/read_quality_poster.R "ruta/etapa1.tsv,ruta/etapa2.tsv" salida.png
 
 
@@ -99,12 +99,12 @@ run_step 2 clipon-prep trim_reads
 run_step 3 clipon-prep INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/ClipON-Prep-Filtering.sh
 
 echo -e "\nResumen de lecturas tras filtrado:"
-python3 scripts/summarize_read_counts.py "$WORK_DIR" ${METADATA_FILE:+--metadata "$METADATA_FILE"}
+python3 scripts/ClipON-Prep-SummarizeReadCounts.py "$WORK_DIR" ${METADATA_FILE:+--metadata "$METADATA_FILE"}
 
 # Generar gráfico de calidad vs longitud para múltiples etapas
 # Se captura solo la última línea para obtener la ruta del archivo generado
 if command -v Rscript >/dev/null 2>&1; then
-    PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
+    PLOT_FILE=$(Rscript scripts/ClipON-Prep-QualityVsLength.R \
         "$FILTER_DIR/read_quality_vs_length.png" \
         ${METADATA_FILE:+--metadata "$METADATA_FILE"} \
         "$PROCESSED_DIR"/*_processed_stats.tsv \

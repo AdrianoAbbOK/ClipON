@@ -2,7 +2,7 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 2) {
-  stop("Usage: plot_quality_vs_length_multi.R <output_png> [--metadata <file>] <tsv1> <tsv2> ...")
+  stop("Usage: ClipON-Prep-QualityVsLength.R <output_png> [--metadata <file>] <tsv1> <tsv2> ...")
 }
 
 output_png <- normalizePath(args[1], mustWork = FALSE)

@@ -2,13 +2,16 @@
 """Collect basic read statistics from a FASTQ file.
 
 Outputs a TSV with per-read length and mean quality score.
-Usage: python scripts/collect_read_stats.py <fastq> <output_tsv>
+Usage: python scripts/ClipON-Prep-CollectReadStats.py <fastq> <output_tsv>
 """
 import sys
 import csv
 
 if len(sys.argv) != 3:
-    print("Usage: collect_read_stats.py <fastq> <output_tsv>", file=sys.stderr)
+    print(
+        "Usage: ClipON-Prep-CollectReadStats.py <fastq> <output_tsv>",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 fastq_path = sys.argv[1]

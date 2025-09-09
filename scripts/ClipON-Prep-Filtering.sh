@@ -10,9 +10,9 @@ else
 fi
 
 # Uso:
-#   INPUT_DIR=dir_de_entrada OUTPUT_DIR=dir_de_salida LOG_FILE=registro.log ./De1.5_A2_Filtrado_NanoFilt_1.1.sh
+#   INPUT_DIR=dir_de_entrada OUTPUT_DIR=dir_de_salida LOG_FILE=registro.log ./ClipON-Prep-Filtering.sh
 #   o bien
-#   ./De1.5_A2_Filtrado_NanoFilt_1.1.sh <dir_entrada> <dir_salida> <archivo_log>
+#   ./ClipON-Prep-Filtering.sh <dir_entrada> <dir_salida> <archivo_log>
 
 # Directorios y archivo de log configurables
 input_dir="${INPUT_DIR:-$1}"
@@ -49,7 +49,7 @@ for file in "$input_dir"/*.fastq; do
     # Verificar si el proceso fue exitoso
     if [ $? -eq 0 ]; then
         echo "Filtrado completado para $file" >> "$log_file"
-        python3 scripts/collect_read_stats.py "$output_file" "$output_dir/${base_name}_filtered_stats.tsv" >> "$log_file" 2>&1
+        python3 scripts/ClipON-Prep-CollectReadStats.py "$output_file" "$output_dir/${base_name}_filtered_stats.tsv" >> "$log_file" 2>&1
     else
         echo "Hubo un error al filtrar $file" >> "$log_file"
     fi
