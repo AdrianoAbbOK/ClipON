@@ -11,56 +11,59 @@
 6. **Clasificación opcional** – el script `scripts/De3_A4_Classify_NGS.sh` usa `qiime feature-classifier classify-consensus-blast` para asignar taxonomía a los consensos unificados.
 7. **Exportación de la clasificación** – `scripts/De3_A4_Export_Classification.sh` guarda `taxonomy.qza`, `search_results.qza` y genera `taxonomy_with_sample.tsv` (con columnas *Reads* y *Sample*) en `Results`. Además, crea `reads_per_species.tsv` con el número total de lecturas por especie y muestra.
 
+## Instalación
 
-## Uso rápido
+Descargue el último release desde la página de [releases](https://github.com/AdrianoAbbOK/ClipON/releases) o con:
 
-Ejecuta todo el flujo con:
+```bash
+wget https://github.com/AdrianoAbbOK/ClipON/releases/latest/download/ClipON.tar.gz
+```
+
+Antes de utilizar el pipeline ejecute:
+
+```bash
+./setup.sh
+```
+
+Este script instala las dependencias y prepara los entornos necesarios.
+
+## Componentes principales que usa ClipON
+
+ClipON es software libre y reconoce el trabajo de varias herramientas de código abierto, que el instalador descarga de forma automática:
+
+- [SeqKit](https://github.com/shenwei356/seqkit)
+- [Cutadapt](https://github.com/marcelm/cutadapt)
+- [NanoFilt](https://github.com/wdecoster/nanofilt)
+- [NGSpeciesID](https://github.com/esteininger/NGSpeciesID)
+- [QIIME 2](https://github.com/qiime2/qiime2)
+- [Python](https://www.python.org/) con [pandas](https://github.com/pandas-dev/pandas) y [matplotlib](https://github.com/matplotlib/matplotlib)
+- [R](https://www.r-project.org/) (opcional)
+- [eog](https://gitlab.gnome.org/GNOME/eog) (opcional para visualizar gráficos PNG)
+- [msmtp](https://marlam.de/msmtp/) (opcional para notificaciones)
+
+Para ejecutarlo se necesita un entorno GNU/Linux o WSL con `bash`. `conda` y [mamba](https://github.com/mamba-org/mamba) se utilizarán para gestionar los entornos y se instalarán automáticamente durante la instalación.
+
+## Uso
+
+### Ejecución interactiva
+
+`run_clipon_interactive.sh` es el corazón del proyecto y la forma recomendada de ejecutar ClipON. El asistente, totalmente de código abierto, guía paso a paso a cualquier persona con nociones básicas de la terminal: instala y configura los componentes necesarios, valida los archivos de entrada y permite reanudar ejecuciones previas. También genera automáticamente el manifest que requiere QIIME2. Si se dispone de un archivo de metadata, puede suministrarse de manera opcional con `--metadata <archivo>`. Al final ofrece editar parámetros avanzados de cada etapa.
+
+```bash
+./scripts/run_clipon_interactive.sh
+```
+
+### Uso avanzado
+
+Usuarios con experiencia en la línea de comandos pueden adaptar los scripts individuales o ejecutar el pipeline completo:
 
 ```bash
 ./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
 ```
 
-Para reemplazar los nombres de los archivos FASTQ por identificadores de
-experimento, proporcione un archivo de metadata con columnas `fastq` y
-`experiment`:
-
-```bash
-./scripts/run_clipon_pipeline.sh --metadata fastq_metadata.tsv <dir_fastq_entrada> <dir_trabajo>
-```
-Consulte [docs/metadata_example.md](docs/metadata_example.md) para un ejemplo de
-formato.
-El directorio `<dir_trabajo>/5_unified` contendrá los archivos de clasificación
-`taxonomy.qza` y `search_results.qza`. El paso de exportación generará copias en
-texto dentro de `5_unified/Results`, incluyendo `taxonomy_with_sample.tsv` con
-las columnas adicionales *Reads* y *Sample* y `reads_per_species.tsv` con los
-conteos de lecturas por especie y muestra. Defina las variables de entorno
-`BLAST_DB` y `TAXONOMY_DB` apuntando a las bases de datos en formato `.qza` para
-habilitar esta etapa.
-
-Esto creará subdirectorios dentro de `<dir_trabajo>` para cada etapa.
-Las rutas de entrada y salida también pueden configurarse manualmente al invocar cada script por separado.
-
-## Configuración
-
-Ejecuta `./setup.sh` para instalar Miniconda, crear los entornos necesarios y asegurar la presencia de `eog` para la visualización de imágenes.
-## Requisitos
-
- - SeqKit
- - Cutadapt
- - NanoFilt (debe estar instalado antes de ejecutar
-   `scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh`)
- - QIIME2
-- Python con pandas y matplotlib (opcional, necesario para el gráfico de
-   barras de taxones)
-- R (opcional, necesario para generar el gráfico de calidad vs longitud que
-  compara lecturas antes y después del filtrado sin distinguir el origen de
-  las muestras; puede instalarse con `sudo apt install r-base`)
-- eog (opcional, instale con `apt install eog` para abrir gráficos PNG en un
-  entorno gráfico)
-- msmtp (utilizado por `scripts/De2_A4__VSearch_Procesonuevo2.6.1.sh` para
-  enviar notificaciones por correo)
-
 ## Ejemplos de ejecución
+
+Las siguientes instrucciones están pensadas para usuarios avanzados que deseen ejecutar o modificar etapas específicas. El asistente interactivo ya realiza estos pasos automáticamente.
 
 ### Procesamiento con SeqKit
 ```bash
@@ -181,37 +184,6 @@ MANIFEST_FILE=manifest.tsv PREFIX=prueba DIRDB=NCBI_DB EMAIL=me@example.com \
 ./scripts/De2_A4_VSearch_ejecutador_combinaciones1.1.sh
 ```
 
-### Ejecución completa
-El wrapper `run_clipon_pipeline.sh` puede ejecutarse desde cualquier
-directorio.  Activará los entornos Conda necesarios automáticamente.
-
-```bash
-./scripts/run_clipon_pipeline.sh <dir_fastq_entrada> <dir_trabajo>
-```
-
-### Asistente interactivo con reanudación
-El script `scripts/run_clipon_interactive.sh` guía la configuración del pipeline y permite reanudar un procesamiento previo.
-Puede recibir `--metadata <archivo>`; si no se proporciona, pedirá la ruta durante la ejecución
-después de indicar los archivos FASTQ.
-Intentará abrir las imágenes con `eog` si está instalado en el sistema.
-
-```bash
-./scripts/run_clipon_interactive.sh
-```
-
-Si se elige reanudar, se solicitará el directorio de trabajo existente; podrá sobrescribirlo o copiarlo a un nuevo directorio. Luego se ejecutará `scripts/check_pipeline_status.sh` para mostrar el estado y solicitar el paso desde el cual continuar. El valor elegido se guarda en `resume_config.sh` y se carga automáticamente para definir la variable `RESUME_STEP` antes de llamar al pipeline.
-
-Tras el resumen de configuración, el asistente permite ingresar una línea con parámetros adicionales que se añadirán a los comandos de los scripts internos. Esta opción ofrece flexibilidad para ajustar hilos, filtros u otros valores sin modificar directamente los scripts.
-
-```bash
-./scripts/run_clipon_interactive.sh
-# ...
-# Parámetros extra para los scripts (opcional):
---threads 8 --max-accepts 5
-```
-
-En un procesamiento nuevo, si el directorio de salida ya existe y contiene archivos, se pedirá confirmación antes de sobrescribirlo.
 
 ### Formato del Importing Manifest
-Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. El archivo debe tener las columnas:
-`sample-id`, `absolute-filepath` y `direction`.
+Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. No es necesario generarlo si usa `run_clipon_interactive.sh`, ya que el asistente crea un manifest correcto de forma automática. Solo se requiere al ejecutar las etapas por separado; en ese caso el archivo debe tener las columnas: `sample-id`, `absolute-filepath` y `direction`.
