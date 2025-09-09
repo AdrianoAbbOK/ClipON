@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Clasifica consensos con QIIME2 empleando el clasificador BLAST
 # Uso:
-#   ./scripts/De3_A4_Classify_NGS.sh <consensos.fasta> <output_dir> <blast_db.qza> <taxonomy.qza>
+#   ./scripts/ClipON-Classif-NGS.sh <consensos.fasta> <output_dir> <blast_db.qza> <taxonomy.qza>
 # O defina las variables de entorno INPUT_FASTA, OUTPUT_DIR, BLAST_DB y TAXONOMY_DB
 
 input_fasta="${INPUT_FASTA:-${1-}}"
