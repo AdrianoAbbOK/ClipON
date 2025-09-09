@@ -2,12 +2,12 @@
 """Collapse read counts per species for each sample.
 
 Reads the ``taxonomy_with_sample.tsv`` table produced by
-``add_reads_and_sample.py`` and outputs, for cada muestra, una tabla con las
-columnas ``Species``, ``Reads`` y ``Proportion`` (0-100). Las especies se
-ordenan por número de lecturas de forma descendente.
+``ClipON-Classif-AddReadsAndSample.py`` and outputs, for cada muestra, una
+tabla con las columnas ``Species``, ``Reads`` y ``Proportion`` (0-100). Las
+especies se ordenan por número de lecturas de forma descendente.
 
 Usage:
-    python scripts/collapse_reads_by_species.py <taxonomy_with_sample.tsv>
+    python scripts/ClipON-Classif-ReadsPerSpecies.py <taxonomy_with_sample.tsv>
 """
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ def format_taxon(taxon: str) -> str:
 def main() -> None:
     if len(sys.argv) != 2:
         print(
-            "Usage: collapse_reads_by_species.py <taxonomy_with_sample.tsv>",
+            "Usage: ClipON-Classif-ReadsPerSpecies.py <taxonomy_with_sample.tsv>",
             file=sys.stderr,
         )
         sys.exit(1)
