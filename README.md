@@ -202,5 +202,5 @@ Tras la clasificación, exporte los resultados a un formato tabular con:
 ```
 
 
-### Formato del Importing Manifest
-Consulte [docs/manifest_example.md](docs/manifest_example.md) para un ejemplo de `ImportingManifest_Manual.csv`. No es necesario generarlo si usa `run_clipon_interactive.sh`, ya que el asistente crea un manifest correcto de forma automática. Solo se requiere al ejecutar las etapas por separado; en ese caso el archivo debe tener las columnas: `sample-id`, `absolute-filepath` y `direction`.
+### Video de Ejecución de prueba -- DE PRUEBA XD
+https://youtu.be/mj88hCP_qiE
