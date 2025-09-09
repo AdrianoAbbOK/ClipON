@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Uso:
-#   BASE_DIR=/ruta/a/clustered OUTPUT_DIR=/ruta/a/unificado ./De2.5_A3_NGSpecies_Unificar_Clusters.sh
-#   o: ./De2.5_A3_NGSpecies_Unificar_Clusters.sh <dir_base> <dir_salida>
+#   BASE_DIR=/ruta/a/clustered OUTPUT_DIR=/ruta/a/unificado ./ClipON-Cluster-NGS-Unifying.sh
+#   o: ./ClipON-Cluster-NGS-Unifying.sh <dir_base> <dir_salida>
 
 # Directorio base donde están las carpetas y de salida
 BASE_DIR="${BASE_DIR:-$1}"
@@ -20,7 +20,7 @@ mkdir -p "$DIR_SALIDA"
 
 # Archivo maestro que contendrá todas las secuencias con el identificador de experimento
 archivo_maestro="$DIR_SALIDA/consensos_todos.fasta"
-> "$archivo_maestro"
+: > "$archivo_maestro"
 
 # Inicializar una variable para verificar si se han procesado secuencias
 se_agregaron_secuencias=false
@@ -39,7 +39,7 @@ for carpeta in "$BASE_DIR"/*; do
     archivo_salida="$DIR_SALIDA/consensos_${identificador}.fasta"
 
     # Inicializar el archivo individual vacío
-    > "$archivo_salida"
+    : > "$archivo_salida"
 
     # Unificar los archivos .fasta dentro de la carpeta y modificar los IDs
     for fasta in "$carpeta"/consensus_reference_*.fasta; do

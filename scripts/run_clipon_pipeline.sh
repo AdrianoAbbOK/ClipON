@@ -15,6 +15,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
 # Inicializar conda y activar entornos según la etapa
+# shellcheck source=/dev/null
 source "$(conda info --base)/etc/profile.d/conda.sh"
 
 METADATA_FILE=""
@@ -118,8 +119,8 @@ fi
 
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
 
-run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/De2_A2.5_NGSpecies_Clustering.sh
-run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
+run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/ClipON-Cluster-NGS-Clustering.sh
+run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/ClipON-Cluster-NGS-Unifying.sh
 
 if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     echo "No se creó el archivo maestro de consensos. Abortando pipeline."
@@ -141,7 +142,7 @@ if command -v python >/dev/null 2>&1; then
             echo "Fallo en python: revisar dependencias" >> "$WORK_DIR/taxon_plot.log"
             TAX_PLOT_FILE="N/A"
         }
-    read -p "¿Abrir el gráfico ahora? [y/N]: " OPEN_TAX_PLOT
+    read -r -p "¿Abrir el gráfico ahora? [y/N]: " OPEN_TAX_PLOT
     if [[ $OPEN_TAX_PLOT =~ ^[Yy]$ && -f "$TAX_PLOT_FILE" ]]; then
         xdg-open "$TAX_PLOT_FILE"
     else

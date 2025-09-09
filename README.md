@@ -150,12 +150,12 @@ Active cada entorno solo la primera vez para instalarlo. El script `run_clipon_p
 
 ### Clustering con NGSpeciesID
 ```bash
-./scripts/De2_A2.5_NGSpecies_Clustering.sh <dir_entrada> <dir_salida>
+./scripts/ClipON-Cluster-NGS-Clustering.sh <dir_entrada> <dir_salida>
 ```
 
 ### Unificación de clusters
 ```bash
-./scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh <dir_base> <dir_salida>
+./scripts/ClipON-Cluster-NGS-Unifying.sh <dir_base> <dir_salida>
 ```
 
 ### Generar manifest automáticamente

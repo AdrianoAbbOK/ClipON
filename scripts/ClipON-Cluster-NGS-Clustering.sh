@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Uso:
-#   INPUT_DIR=/ruta/a/fastq OUTPUT_DIR=/ruta/a/salida ./De2_A2.5_NGSpecies_Clustering.sh
-#   o: ./De2_A2.5_NGSpecies_Clustering.sh <dir_entrada> <dir_salida>
+#   INPUT_DIR=/ruta/a/fastq OUTPUT_DIR=/ruta/a/salida ./ClipON-Cluster-NGS-Clustering.sh
+#   o: ./ClipON-Cluster-NGS-Clustering.sh <dir_entrada> <dir_salida>
 
 # Directorio que contiene los archivos .fastq y salida configurables
 input_dir="${INPUT_DIR:-$1}"
@@ -34,16 +34,13 @@ for fastq_file in "$input_dir"/*.fastq; do
     # Mostrar mensaje indicando el archivo que se está procesando
     echo "Procesando archivo: $base_name.fastq"
     
-    # Ejecutar el comando para cada archivo .fastq
-    NGSpeciesID --ont --consensus \
-                --m "$m_len" --s "$support" --medaka \
-                --t "$threads" --q "$qual" \
-                --rc_identity_threshold "$rc_id" \
-                --abundance_ratio "$abund_ratio" \
-                --fastq "$fastq_file" --outfolder "$output_dir/$base_name"
-    
-    # Verificar si el comando fue exitoso
-    if [ $? -ne 0 ]; then
+    # Ejecutar el comando para cada archivo .fastq y verificar su éxito
+    if ! NGSpeciesID --ont --consensus \
+        --m "$m_len" --s "$support" --medaka \
+        --t "$threads" --q "$qual" \
+        --rc_identity_threshold "$rc_id" \
+        --abundance_ratio "$abund_ratio" \
+        --fastq "$fastq_file" --outfolder "$output_dir/$base_name"; then
         echo "Error al procesar el archivo: $base_name.fastq. Saliendo."
         exit 1
     fi
