@@ -14,7 +14,7 @@ def test_cleaned_files_update_filtered(tmp_path):
     write_stats(tmp_path / "cleaned_CAV_37C01C_filtered_stats.tsv", 3)
     write_stats(tmp_path / "cleaned_SAV_926008_filtered_stats.tsv", 4)
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "summarize_read_counts.py"
+    script = Path(__file__).resolve().parents[1] / "scripts" / "ClipON-Prep-SummarizeReadCounts.py"
     result = subprocess.run(
         [sys.executable, str(script), str(tmp_path)],
         check=True,
@@ -46,7 +46,7 @@ def test_trimmed_files_are_aggregated(tmp_path):
     write_stats(tmp_path / "sample_processed_stats.tsv", 4)
     write_stats(tmp_path / "sample_trimmed_processed_stats.tsv", 5)
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "summarize_read_counts.py"
+    script = Path(__file__).resolve().parents[1] / "scripts" / "ClipON-Prep-SummarizeReadCounts.py"
     result = subprocess.run(
         [sys.executable, str(script), str(tmp_path)],
         check=True,
@@ -77,7 +77,7 @@ def test_metadata_mapping(tmp_path):
     meta = tmp_path / "meta.tsv"
     meta.write_text("fastq\texperiment\ns1\tExpA\n")
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "summarize_read_counts.py"
+    script = Path(__file__).resolve().parents[1] / "scripts" / "ClipON-Prep-SummarizeReadCounts.py"
     result = subprocess.run(
         [sys.executable, str(script), str(tmp_path), "--metadata", str(meta)],
         check=True,

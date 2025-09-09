@@ -10,7 +10,7 @@ if (length(args) != 2) {
   stop("Uso: read_quality_poster.R <tsv_paths_coma_separadas> <output_png>")
 }
 
-# Argumento 1: rutas separadas por comas a los TSV generados por collect_read_stats.py
+# Argumento 1: rutas separadas por comas a los TSV generados por ClipON-Prep-CollectReadStats.py
 tsve <- strsplit(args[1], ",")[[1]]
 output_png <- args[2]
 

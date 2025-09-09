@@ -35,7 +35,7 @@ print_section() {
 
 # Script interactivo para ejecutar el pipeline de ClipON paso a paso
 # Nota: la extracción de longitudes y calidades por lectura ya se realiza con
-# scripts/collect_read_stats.py
+# scripts/ClipON-Prep-CollectReadStats.py
 
 # Determinar la raíz del repositorio y usar rutas relativas
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -443,11 +443,11 @@ run_step 3 clipon-prep "Paso 3: Filtrado con NanoFilt" "$FILTER_EXTRA_ARGS" \
 PLOT_FILE="N/A"
 if [ "${RESUME_STEP:-1}" -le 3 ]; then
     echo -e "\nResumen de lecturas tras filtrado:"
-    python3 scripts/summarize_read_counts.py "$WORK_DIR" ${METADATA_FILE:+--metadata "$METADATA_FILE"}
+    python3 scripts/ClipON-Prep-SummarizeReadCounts.py "$WORK_DIR" ${METADATA_FILE:+--metadata "$METADATA_FILE"}
 
     print_section "Gráfico de calidad vs longitud"
     if command -v Rscript >/dev/null 2>&1; then
-        PLOT_FILE=$(Rscript scripts/plot_quality_vs_length_multi.R \
+        PLOT_FILE=$(Rscript scripts/ClipON-Prep-QualityVsLength.R \
             "$FILTER_DIR/read_quality_vs_length.png" \
             ${METADATA_FILE:+--metadata "$METADATA_FILE"} \
             "$PROCESSED_DIR"/*_processed_stats.tsv \

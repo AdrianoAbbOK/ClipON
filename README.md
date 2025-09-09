@@ -85,7 +85,7 @@ Para obtener longitudes y calidades por lectura utilice el script ya incluido
 en el repositorio:
 
 ```bash
-python scripts/collect_read_stats.py <archivo.fastq>
+python scripts/ClipON-Prep-CollectReadStats.py <archivo.fastq>
 ```
 Así evita implementar herramientas duplicadas para esta tarea.
 
