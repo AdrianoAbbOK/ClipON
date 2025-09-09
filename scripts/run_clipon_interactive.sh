@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Códigos de pasos para reanudación:
+# Paso 1 – ClipON-Prep-Cleaning
+# Paso 2 – ClipON-Prep-Trimming
+# Paso 3 – ClipON-Prep-Filtering
+# Paso 4 – ClipON-Cluster-NGS-Clustering
+# Paso 5 – ClipON-Cluster-NGS-Unifying
+# Paso 6 – De3_A4_Classify_NGS
+# Paso 7 – De3_A4_Export_Classification
+
 # Parámetro opcional para pasar metadata de FASTQ a experimento
 METADATA_FILE=""
 while [[ $# -gt 0 ]]; do
@@ -31,6 +40,31 @@ print_section() {
     echo "========================================================="
     echo "$1"
     echo "========================================================="
+}
+
+STEP_CODES=(
+    "ClipON-Prep-Cleaning"
+    "ClipON-Prep-Trimming"
+    "ClipON-Prep-Filtering"
+    "ClipON-Cluster-NGS-Clustering"
+    "ClipON-Cluster-NGS-Unifying"
+    "De3_A4_Classify_NGS"
+    "De3_A4_Export_Classification"
+)
+
+resolve_resume() {
+    RESUME_STEP="${RESUME_STEP:-1}"
+    if [[ -n "${RESUME_CODE:-}" ]]; then
+        for i in "${!STEP_CODES[@]}"; do
+            if [[ "${STEP_CODES[$i]}" == "$RESUME_CODE" ]]; then
+                RESUME_STEP=$((i+1))
+                break
+            fi
+        done
+    else
+        RESUME_CODE="${STEP_CODES[$((RESUME_STEP-1))]}"
+    fi
+    RESUME_STARTED=0
 }
 
 # Script interactivo para ejecutar el pipeline de ClipON paso a paso
@@ -98,6 +132,8 @@ if [ "$MODE" = "resume" ]; then
     # shellcheck source=/dev/null
     source "$WORK_DIR/resume_config.sh"
 fi
+
+resolve_resume
 
 INPUT_DIR="N/A"
 if [ "$MODE" = "new" ] || [ "${RESUME_STEP:-1}" -le 1 ]; then
@@ -190,7 +226,7 @@ if [ "$USE_DEFAULTS" -eq 0 ]; then
     echo "========================================================="
 
     if [ "${RESUME_STEP:-1}" -le 2 ]; then
-        print_section "Paso 2: Recorte de secuencias"
+        print_section "Paso 2 – ClipON-Prep-Trimming"
 
         read -rp "¿Desea recortar las secuencias con cutadapt? (y/n) " do_trim
         DEFAULT_TRIM_FRONT=0
@@ -211,7 +247,7 @@ if [ "$USE_DEFAULTS" -eq 0 ]; then
     fi
 
     if [ "${RESUME_STEP:-1}" -le 3 ]; then
-        print_section "Paso 3: Filtrado con NanoFilt"
+        print_section "Paso 3 – ClipON-Prep-Filtering"
         DEFAULT_MIN_LEN=650
         DEFAULT_MAX_LEN=750
         DEFAULT_MIN_QUAL=10
@@ -225,7 +261,7 @@ if [ "$USE_DEFAULTS" -eq 0 ]; then
     fi
 
     if [ "${RESUME_STEP:-1}" -le 4 ]; then
-        print_section "Paso 4: Clustering de NGSpecies"
+        print_section "Paso 4 – ClipON-Cluster-NGS-Clustering"
         DEFAULT_M_LEN=700
         DEFAULT_SUPPORT=150
         DEFAULT_THREADS=16
@@ -248,7 +284,7 @@ if [ "$USE_DEFAULTS" -eq 0 ]; then
     fi
 
     if [ "${RESUME_STEP:-1}" -le 6 ]; then
-        print_section "Paso 6: Clasificación taxonómica"
+        print_section "Paso 6 – De3_A4_Classify_NGS"
         DEFAULT_NUM_THREADS=5
         DEFAULT_PERC_ID=0.8
         DEFAULT_QUERY_COV=0.8
@@ -326,7 +362,7 @@ echo "  Directorio de trabajo: $WORK_DIR"
 echo "  Base de datos BLAST: $BLAST_DB"
 echo "  Base de datos de taxonomía: $TAXONOMY_DB"
 if [ "$MODE" = "resume" ]; then
-    echo "  Reanudación desde el paso: $RESUME_STEP"
+    echo "  Reanudación desde el paso: $RESUME_CODE"
 fi
 echo " *Recorte de secuencias"
 if [ "$SKIP_TRIM" -eq 1 ]; then
@@ -383,14 +419,21 @@ mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR
 
 run_step() {
     local step="$1"
-    local env="$2"
-    local header="$3"
-    local extra_args="$4"
-    shift 4
+    local code="$2"
+    local env="$3"
+    local header="$4"
+    local extra_args="$5"
+    shift 5
     local cmd="$*"
 
-    if [ "${RESUME_STEP:-1}" -gt "$step" ]; then
-        echo "Saltando paso $step: $header"
+    if [[ -n "${RESUME_CODE:-}" ]]; then
+        if [[ "$RESUME_STARTED" -eq 0 && "$code" != "$RESUME_CODE" ]]; then
+            echo "Saltando paso $step – $code"
+            return 0
+        fi
+        RESUME_STARTED=1
+    elif [ "${RESUME_STEP:-1}" -gt "$step" ]; then
+        echo "Saltando paso $step – $code"
         return 0
     fi
 
@@ -401,7 +444,7 @@ run_step() {
     else
         eval "$cmd"
     fi
-    touch "$WORK_DIR/.step${step}_done"
+    touch "$WORK_DIR/.${code}_done"
 }
 
 trim_reads() {
@@ -430,12 +473,12 @@ classify_reads() {
     echo "Clasificación finalizada. Revise $UNIFIED_DIR/Results"
 }
 
-run_step 1 clipon-prep "Paso 1: Procesamiento inicial de FASTQ" "" \
+run_step 1 ClipON-Prep-Cleaning clipon-prep "Paso 1 – ClipON-Prep-Cleaning" "" \
     INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" \
     bash scripts/ClipON-Prep-Cleaning.sh
 
-run_step 2 clipon-prep "Paso 2: Recorte de secuencias" "$TRIM_EXTRA_ARGS" trim_reads
-run_step 3 clipon-prep "Paso 3: Filtrado con NanoFilt" "$FILTER_EXTRA_ARGS" \
+run_step 2 ClipON-Prep-Trimming clipon-prep "Paso 2 – ClipON-Prep-Trimming" "$TRIM_EXTRA_ARGS" trim_reads
+run_step 3 ClipON-Prep-Filtering clipon-prep "Paso 3 – ClipON-Prep-Filtering" "$FILTER_EXTRA_ARGS" \
     MIN_LEN="$MIN_LEN" MAX_LEN="$MAX_LEN" MIN_QUAL="$MIN_QUAL" \
     INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" \
     LOG_FILE="$LOG_FILE" bash scripts/ClipON-Prep-Filtering.sh
@@ -492,13 +535,13 @@ else
     echo "Omitiendo resumen de lecturas y generación del gráfico (RESUME_STEP=${RESUME_STEP:-1} > 3)."
 fi
 
-run_step 4 clipon-ngs "Paso 4: Clustering de NGSpecies" "$CLUSTER_EXTRA_ARGS" \
+run_step 4 ClipON-Cluster-NGS-Clustering clipon-ngs "Paso 4 – ClipON-Cluster-NGS-Clustering" "$CLUSTER_EXTRA_ARGS" \
     M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
     QUAL="$QUAL" RC_ID="$RC_ID" ABUND_RATIO="$ABUND_RATIO" \
     INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
     bash scripts/ClipON-Cluster-NGS-Clustering.sh
 
-run_step 5 clipon-ngs "Paso 5: Unificación de clusters" "" \
+run_step 5 ClipON-Cluster-NGS-Unifying clipon-ngs "Paso 5 – ClipON-Cluster-NGS-Unifying" "" \
     BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" \
     bash scripts/ClipON-Cluster-NGS-Unifying.sh
 
@@ -507,9 +550,9 @@ if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     exit 1
 fi
 
-run_step 6 clipon-qiime "Paso 6: Clasificación taxonómica" "$CLASSIFY_EXTRA_ARGS" classify_reads
+run_step 6 De3_A4_Classify_NGS clipon-qiime "Paso 6 – De3_A4_Classify_NGS" "$CLASSIFY_EXTRA_ARGS" classify_reads
 
-run_step 7 clipon-qiime "Paso 7: Exportación de clasificación" "" \
+run_step 7 De3_A4_Export_Classification clipon-qiime "Paso 7 – De3_A4_Export_Classification" "" \
     METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
