@@ -410,7 +410,7 @@ trim_reads() {
         cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
     else
         INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" \
-            bash scripts/De1_A1.5_Trim_Fastq.sh "$@"
+            bash scripts/ClipON-Prep-Trimming.sh "$@"
     fi
 }
 
@@ -432,13 +432,13 @@ classify_reads() {
 
 run_step 1 clipon-prep "Paso 1: Procesamiento inicial de FASTQ" "" \
     INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" \
-    bash scripts/De0_A1_Process_Fastq.4_SeqKit.sh
+    bash scripts/ClipON-Prep-Cleaning.sh
 
 run_step 2 clipon-prep "Paso 2: Recorte de secuencias" "$TRIM_EXTRA_ARGS" trim_reads
 run_step 3 clipon-prep "Paso 3: Filtrado con NanoFilt" "$FILTER_EXTRA_ARGS" \
     MIN_LEN="$MIN_LEN" MAX_LEN="$MAX_LEN" MIN_QUAL="$MIN_QUAL" \
     INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" \
-    LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
+    LOG_FILE="$LOG_FILE" bash scripts/ClipON-Prep-Filtering.sh
 # Resumen y gráfico de calidad solo si se ejecutan los primeros pasos
 PLOT_FILE="N/A"
 if [ "${RESUME_STEP:-1}" -le 3 ]; then

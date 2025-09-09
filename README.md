@@ -67,17 +67,17 @@ Las siguientes instrucciones están pensadas para usuarios avanzados que deseen 
 
 ### Procesamiento con SeqKit
 ```bash
-./scripts/De0_A1_Process_Fastq.4_SeqKit.sh <dir_entrada> <dir_salida>
+./scripts/ClipON-Prep-Cleaning.sh <dir_entrada> <dir_salida>
 ```
 
 ### Recorte con Cutadapt
 ```bash
-./scripts/De1_A1.5_Trim_Fastq.sh <dir_entrada> <dir_salida>
+./scripts/ClipON-Prep-Trimming.sh <dir_entrada> <dir_salida>
 ```
 
 ### Filtrado con NanoFilt
 ```bash
-./scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh <dir_entrada> <dir_salida> <log_file>
+./scripts/ClipON-Prep-Filtering.sh <dir_entrada> <dir_salida> <log_file>
 ```
 
 ### Estadísticas de lecturas

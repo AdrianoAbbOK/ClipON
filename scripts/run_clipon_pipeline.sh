@@ -76,7 +76,7 @@ trim_reads() {
         cp "$PROCESSED_DIR"/*.fastq "$TRIM_DIR"/
     else
         INPUT_DIR="$PROCESSED_DIR" OUTPUT_DIR="$TRIM_DIR" TRIM_FRONT="$TRIM_FRONT" TRIM_BACK="$TRIM_BACK" \
-            bash scripts/De1_A1.5_Trim_Fastq.sh
+            bash scripts/ClipON-Prep-Trimming.sh
     fi
 }
 
@@ -93,9 +93,9 @@ classify_reads() {
     echo "Clasificación finalizada. Revise $UNIFIED_DIR/Results"
 }
 
-run_step 1 clipon-prep INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" bash scripts/De0_A1_Process_Fastq.4_SeqKit.sh
+run_step 1 clipon-prep INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" bash scripts/ClipON-Prep-Cleaning.sh
 run_step 2 clipon-prep trim_reads
-run_step 3 clipon-prep INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/De1.5_A2_Filtrado_NanoFilt_1.1.sh
+run_step 3 clipon-prep INPUT_DIR="$TRIM_DIR" OUTPUT_DIR="$FILTER_DIR" LOG_FILE="$LOG_FILE" bash scripts/ClipON-Prep-Filtering.sh
 
 echo -e "\nResumen de lecturas tras filtrado:"
 python3 scripts/summarize_read_counts.py "$WORK_DIR" ${METADATA_FILE:+--metadata "$METADATA_FILE"}
