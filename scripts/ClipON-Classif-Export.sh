@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Exporta archivos de clasificacion de QIIME2
 # Uso:
-#   ./scripts/De3_A5_Export_Classification.sh <dir_clasificacion>
+#   ./scripts/ClipON-Classif-Export.sh <dir_clasificacion>
 #   o defina la variable CLASS_DIR
 
 class_dir="${CLASS_DIR:-${1-}}"

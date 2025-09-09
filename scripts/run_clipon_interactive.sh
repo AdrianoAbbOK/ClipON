@@ -421,7 +421,7 @@ classify_reads() {
     fi
     NUM_THREADS="$NUM_THREADS" PERC_ID="$PERC_ID" QUERY_COV="$QUERY_COV" \
     MAX_ACCEPTS="$MAX_ACCEPTS" MIN_CONSENSUS="$MIN_CONSENSUS" \
-    bash scripts/De3_A4_Classify_NGS.sh \
+    bash scripts/ClipON-Classif-NGS.sh \
         "$UNIFIED_DIR/consensos_todos.fasta" \
         "$UNIFIED_DIR" \
         "$BLAST_DB" \
@@ -510,7 +510,7 @@ fi
 run_step 6 clipon-qiime "Paso 6: Clasificación taxonómica" "$CLASSIFY_EXTRA_ARGS" classify_reads
 
 run_step 7 clipon-qiime "Paso 7: Exportación de clasificación" "" \
-    METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+    METADATA_FILE="$METADATA_FILE" bash scripts/ClipON-Classif-Export.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
 

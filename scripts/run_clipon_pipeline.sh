@@ -86,7 +86,7 @@ classify_reads() {
         echo "Advertencia: BLAST_DB o TAXONOMY_DB no están definidos. Omitiendo clasificación."
         return 0
     fi
-    bash scripts/De3_A4_Classify_NGS.sh \
+    bash scripts/ClipON-Classif-NGS.sh \
         "$UNIFIED_DIR/consensos_todos.fasta" \
         "$UNIFIED_DIR" \
         "$BLAST_DB" \
@@ -128,7 +128,7 @@ if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
 fi
 
 run_step 6 clipon-qiime classify_reads
-run_step 7 clipon-qiime METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+run_step 7 clipon-qiime METADATA_FILE="$METADATA_FILE" bash scripts/ClipON-Classif-Export.sh "$UNIFIED_DIR"
 
 echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
 
