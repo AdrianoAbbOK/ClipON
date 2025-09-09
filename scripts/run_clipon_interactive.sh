@@ -7,8 +7,8 @@ set -euo pipefail
 # Paso 3 – ClipON-Prep-Filtering
 # Paso 4 – ClipON-Cluster-NGS-Clustering
 # Paso 5 – ClipON-Cluster-NGS-Unifying
-# Paso 6 – De3_A4_Classify_NGS
-# Paso 7 – De3_A4_Export_Classification
+# Paso 6 – ClipON-Classif-AddReadsAndSample
+# Paso 7 – ClipON-Classif-ReadsPerSpecies
 
 # Parámetro opcional para pasar metadata de FASTQ a experimento
 METADATA_FILE=""
@@ -48,8 +48,8 @@ STEP_CODES=(
     "ClipON-Prep-Filtering"
     "ClipON-Cluster-NGS-Clustering"
     "ClipON-Cluster-NGS-Unifying"
-    "De3_A4_Classify_NGS"
-    "De3_A4_Export_Classification"
+    "ClipON-Classif-AddReadsAndSample"
+    "ClipON-Classif-ReadsPerSpecies"
 )
 
 resolve_resume() {
@@ -284,7 +284,7 @@ if [ "$USE_DEFAULTS" -eq 0 ]; then
     fi
 
     if [ "${RESUME_STEP:-1}" -le 6 ]; then
-        print_section "Paso 6 – De3_A4_Classify_NGS"
+        print_section "Paso 6 – ClipON-Classif-AddReadsAndSample"
         DEFAULT_NUM_THREADS=5
         DEFAULT_PERC_ID=0.8
         DEFAULT_QUERY_COV=0.8
@@ -473,6 +473,19 @@ classify_reads() {
     echo "Clasificación finalizada. Revise $UNIFIED_DIR/Results"
 }
 
+classify_and_add_reads() {
+    classify_reads "$@"
+    METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
+    echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
+}
+
+reads_per_species() {
+    python3 scripts/ClipON-Classif-ReadsPerSpecies.py \
+        "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
+        | tee "$UNIFIED_DIR/Results/reads_per_species.tsv"
+    echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/Results"
+}
+
 run_step 1 ClipON-Prep-Cleaning clipon-prep "Paso 1 – ClipON-Prep-Cleaning" "" \
     INPUT_DIR="$INPUT_DIR" OUTPUT_DIR="$PROCESSED_DIR" \
     bash scripts/ClipON-Prep-Cleaning.sh
@@ -550,12 +563,7 @@ if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     exit 1
 fi
 
-run_step 6 De3_A4_Classify_NGS clipon-qiime "Paso 6 – De3_A4_Classify_NGS" "$CLASSIFY_EXTRA_ARGS" classify_reads
-
-run_step 7 De3_A4_Export_Classification clipon-qiime "Paso 7 – De3_A4_Export_Classification" "" \
-    METADATA_FILE="$METADATA_FILE" bash scripts/De3_A4_Export_Classification.sh "$UNIFIED_DIR"
-
-echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
+run_step 6 ClipON-Classif-AddReadsAndSample clipon-qiime "Paso 6 – ClipON-Classif-AddReadsAndSample" "$CLASSIFY_EXTRA_ARGS" classify_and_add_reads
 
 print_section "Gráfico de taxones"
 TAX_PLOT_FILE="N/A"
@@ -587,11 +595,7 @@ else
 fi
 echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
 
-print_section "Lecturas por especie"
-python3 scripts/ClipON-Classif-ReadsPerSpecies.py \
-    "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
-    | tee "$UNIFIED_DIR/Results/reads_per_species.tsv"
-echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/Results"
+run_step 7 ClipON-Classif-ReadsPerSpecies clipon-qiime "Paso 7 – ClipON-Classif-ReadsPerSpecies" "" reads_per_species
 
 echo "Pipeline completado. Resultados en: $WORK_DIR"
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
