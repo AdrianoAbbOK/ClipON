@@ -496,11 +496,11 @@ run_step 4 clipon-ngs "Paso 4: Clustering de NGSpecies" "$CLUSTER_EXTRA_ARGS" \
     M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
     QUAL="$QUAL" RC_ID="$RC_ID" ABUND_RATIO="$ABUND_RATIO" \
     INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
-    bash scripts/De2_A2.5_NGSpecies_Clustering.sh
+    bash scripts/ClipON-Cluster-NGS-Clustering.sh
 
 run_step 5 clipon-ngs "Paso 5: Unificación de clusters" "" \
     BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" \
-    bash scripts/De2.5_A3_NGSpecies_Unificar_Clusters.sh
+    bash scripts/ClipON-Cluster-NGS-Unifying.sh
 
 if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     echo "No se creó el archivo maestro de consensos. Abortando pipeline."
