@@ -16,7 +16,7 @@ def test_collapse_reads(tmp_path):
     script = (
         Path(__file__).resolve().parents[1]
         / "scripts"
-        / "collapse_reads_by_species.py"
+        / "ClipON-Classif-ReadsPerSpecies.py"
     )
     result = subprocess.run(
         [sys.executable, str(script), str(in_file)],

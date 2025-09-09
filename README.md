@@ -90,7 +90,7 @@ python scripts/collect_read_stats.py <archivo.fastq>
 Así evita implementar herramientas duplicadas para esta tarea.
 
 ### Gráfico de barras de taxones
-El script `scripts/plot_taxon_bar.py` genera un gráfico de barras apiladas con
+El script `scripts/ClipON-Classif-PlotTaxonBar.py` genera un gráfico de barras apiladas con
 la proporción de lecturas por muestra. Puede asignar nombres de experimento a
 las muestras con `--metadata <archivo>` y, opcionalmente, reemplazar los nombres
 por códigos secuenciales (`M1`, `M2`, ...) con `--code-samples`, guardando la
@@ -100,7 +100,7 @@ secuenciales (`T1`, `T2`, ...) con `--code-taxa`, guardando la tabla de
 equivalencias en `<salida>.taxon_map.tsv`.
 
 ```bash
-python scripts/plot_taxon_bar.py taxonomy_with_sample.tsv plot.png \
+python scripts/ClipON-Classif-PlotTaxonBar.py taxonomy_with_sample.tsv plot.png \
     --metadata fastq_metadata.tsv --code-samples --code-taxa
 ```
 

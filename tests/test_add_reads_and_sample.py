@@ -7,7 +7,11 @@ from pathlib import Path
 def run_script(input_text: str, tmp_path: Path, metadata: Path | None = None) -> Path:
     in_file = tmp_path / "taxonomy.tsv"
     in_file.write_text(input_text)
-    script = Path(__file__).resolve().parents[1] / "scripts" / "add_reads_and_sample.py"
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "ClipON-Classif-AddReadsAndSample.py"
+    )
     cmd = [sys.executable, str(script), str(in_file)]
     if metadata is not None:
         cmd.extend(["--metadata", str(metadata)])

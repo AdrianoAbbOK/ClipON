@@ -2,9 +2,11 @@
 """Generate a stacked bar plot of read proportions per sample.
 
 Usage:
-    python scripts/plot_taxon_bar.py <taxonomy.tsv> <output.png>
-    python scripts/plot_taxon_bar.py <taxonomy.tsv> <output.png> --code-samples
-    python scripts/plot_taxon_bar.py <taxonomy.tsv> <output.png> --code-taxa
+    python scripts/ClipON-Classif-PlotTaxonBar.py <taxonomy.tsv> <output.png>
+    python scripts/ClipON-Classif-PlotTaxonBar.py <taxonomy.tsv> <output.png> \
+        --code-samples
+    python scripts/ClipON-Classif-PlotTaxonBar.py <taxonomy.tsv> <output.png> \
+        --code-taxa
 
 The input TSV must contain at least the columns Sample, Taxon and Reads.
 Empty or missing taxon names are replaced with "Unassigned" to ensure each

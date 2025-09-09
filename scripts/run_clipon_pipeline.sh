@@ -133,7 +133,7 @@ echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
 
 TAX_PLOT_FILE="N/A"
 if command -v python >/dev/null 2>&1; then
-    TAX_PLOT_FILE=$(python scripts/plot_taxon_bar.py \
+    TAX_PLOT_FILE=$(python scripts/ClipON-Classif-PlotTaxonBar.py \
         "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
         "$UNIFIED_DIR/Results/taxon_stacked_bar.png" \
         ${METADATA_FILE:+--metadata "$METADATA_FILE"} --code-samples 2>&1 | \

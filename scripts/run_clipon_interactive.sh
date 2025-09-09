@@ -517,7 +517,7 @@ echo "Clasificación y exportación finalizadas. Revise $UNIFIED_DIR/Results"
 print_section "Gráfico de taxones"
 TAX_PLOT_FILE="N/A"
 if command -v python >/dev/null 2>&1; then
-    TAX_PLOT_FILE=$(python scripts/plot_taxon_bar.py \
+    TAX_PLOT_FILE=$(python scripts/ClipON-Classif-PlotTaxonBar.py \
         "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
         "$UNIFIED_DIR/Results/taxon_stacked_bar.png" \
         ${METADATA_FILE:+--metadata "$METADATA_FILE"} --code-samples 2>&1 | \
@@ -545,7 +545,7 @@ fi
 echo "Gráfico de taxones disponible en: $TAX_PLOT_FILE"
 
 print_section "Lecturas por especie"
-python3 scripts/collapse_reads_by_species.py \
+python3 scripts/ClipON-Classif-ReadsPerSpecies.py \
     "$UNIFIED_DIR/Results/taxonomy_with_sample.tsv" \
     | tee "$UNIFIED_DIR/Results/reads_per_species.tsv"
 echo "La tabla y el resto de resultados se guardaron en $UNIFIED_DIR/Results"

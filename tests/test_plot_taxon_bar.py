@@ -12,7 +12,11 @@ def test_sample_codes(tmp_path):
     in_file.write_text(table)
     out_file = tmp_path / "plot.png"
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "plot_taxon_bar.py"
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "ClipON-Classif-PlotTaxonBar.py"
+    )
     env = os.environ.copy()
     env["MPLBACKEND"] = "Agg"
     subprocess.run(
@@ -43,7 +47,11 @@ def test_metadata_mapping(tmp_path):
     meta = tmp_path / "meta.tsv"
     meta.write_text("fastq\texperiment\nA\tExp1\n")
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "plot_taxon_bar.py"
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "ClipON-Classif-PlotTaxonBar.py"
+    )
     env = os.environ.copy()
     env["MPLBACKEND"] = "Agg"
     subprocess.run(
@@ -74,7 +82,11 @@ def test_metadata_partial_match_with_processed_names(tmp_path):
     meta = tmp_path / "meta.tsv"
     meta.write_text("fastq\texperiment\nA\tExp1\n")
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "plot_taxon_bar.py"
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "ClipON-Classif-PlotTaxonBar.py"
+    )
     env = os.environ.copy()
     env["MPLBACKEND"] = "Agg"
     subprocess.run(
@@ -102,7 +114,11 @@ def test_fallback_to_clean_fastq(tmp_path):
     in_file.write_text(table)
     out_file = tmp_path / "plot.png"
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "plot_taxon_bar.py"
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "ClipON-Classif-PlotTaxonBar.py"
+    )
     env = os.environ.copy()
     env["MPLBACKEND"] = "Agg"
     subprocess.run(
@@ -128,7 +144,11 @@ def test_taxon_coding(tmp_path):
     in_file.write_text(table)
     out_file = tmp_path / "plot.png"
 
-    script = Path(__file__).resolve().parents[1] / "scripts" / "plot_taxon_bar.py"
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "ClipON-Classif-PlotTaxonBar.py"
+    )
     env = os.environ.copy()
     env["MPLBACKEND"] = "Agg"
     subprocess.run(

@@ -41,10 +41,10 @@ qiime tools export \
 
 # Generar tabla con columnas adicionales de lecturas y muestra
 if [[ -n "${METADATA_FILE:-}" ]]; then
-    python3 "$(dirname "$0")/add_reads_and_sample.py" \
+    python3 "$(dirname "$0")/ClipON-Classif-AddReadsAndSample.py" \
         --metadata "$METADATA_FILE" "$export_dir/taxonomy.tsv" >>"$log_file" 2>&1
 else
-    python3 "$(dirname "$0")/add_reads_and_sample.py" "$export_dir/taxonomy.tsv" >>"$log_file" 2>&1
+    python3 "$(dirname "$0")/ClipON-Classif-AddReadsAndSample.py" "$export_dir/taxonomy.tsv" >>"$log_file" 2>&1
 fi
 
 if [[ -f "$export_dir/taxonomy_with_sample.tsv" ]]; then
