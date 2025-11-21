@@ -11,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 input_dir="${INPUT_DIR:-${1-}}"
 output_dir="${OUTPUT_DIR:-${2-}}"
-manifest_path="${MANIFEST_PATH:-$output_dir/manifest.csv}"
+manifest_path="${MANIFEST_PATH:-$output_dir/manifest.tsv}"
 
 # Parámetros de VSEARCH
 VS_IDENTITY="${VS_IDENTITY:-0.98}"
@@ -40,9 +40,9 @@ rm -f "$output_dir/consensos_todos.fasta"
 find "$output_dir" -mindepth 1 -maxdepth 1 -type d ! -name export -exec rm -rf {} +
 
 # Generar manifiesto de importación
-bash "$SCRIPT_DIR/generate_manifest.sh" --filtered "$input_dir" >"$manifest_path"
-# Normalizar saltos de línea para evitar errores de importación en QIIME2
-sed -i 's/\r$//' "$manifest_path"
+bash "$SCRIPT_DIR/generate_manifest.sh" \
+    --filtered "$input_dir" \
+    --output "$manifest_path"
 
 sequences_qza="$output_dir/sequences.qza"
 demux_qzv="$output_dir/demux_summary.qzv"

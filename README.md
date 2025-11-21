@@ -191,17 +191,20 @@ INPUT_DIR=/ruta/a/3_filtered OUTPUT_DIR=/ruta/a/4_clustered \
 ```
 
 ### Generar manifest automáticamente
-El archivo `manifest.csv` requerido por QIIME2 puede crearse con:
+El archivo `manifest.tsv` requerido por QIIME2 puede crearse con:
 
 ```bash
-./scripts/generate_manifest.sh --workdir <dir_trabajo> filtered > manifest.csv
+./scripts/generate_manifest.sh --workdir <dir_trabajo> filtered --output manifest.tsv
 ```
 
 También puede generarse a partir de los consensos unificados:
 
 ```bash
-./scripts/generate_manifest.sh --workdir <dir_trabajo> unified > manifest.csv
+./scripts/generate_manifest.sh --workdir <dir_trabajo> unified --output manifest.tsv
 ```
+
+El script escribe el manifest con separadores de tabulación y normaliza los saltos
+de línea al formato Unix (usa `dos2unix` si está disponible).
 
 ### Clasificación con QIIME2
 ```bash
