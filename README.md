@@ -6,7 +6,8 @@
 1. **Procesamiento inicial** – se filtran secuencias corruptas con `SeqKit`.
 2. **Recorte de cebadores** – `Cutadapt` elimina bases al inicio y fin.
 3. **Filtrado de calidad y longitud** – `NanoFilt` descarta lecturas cortas o de baja calidad.
-4. **Clustering** – `NGSpeciesID` agrupa secuencias y genera consensos.
+4. **Clustering** – `NGSpeciesID` (predeterminado) o `VSEARCH` generan
+   consensos a partir de las lecturas filtradas.
 5. **Unificación de clusters** – se combinan los consensos de distintos experimentos.
 6. **Clasificación opcional** – el script `scripts/ClipON-Classif-NGS.sh` usa `qiime feature-classifier classify-consensus-blast` para asignar taxonomía a los consensos unificados.
 7. **Exportación de la clasificación** – `scripts/ClipON-Classif-Export.sh` guarda `taxonomy.qza`, `search_results.qza` y genera `taxonomy_with_sample.tsv` (con columnas *Reads* y *Sample*) en `Results`. Además, crea `reads_per_species.tsv` con el número total de lecturas por especie y muestra.
@@ -21,6 +22,8 @@
 - **ClipON-Cluster**
   - `ClipON-Cluster-NGS-Clustering.sh`
   - `ClipON-Cluster-NGS-Unifying.sh`
+  - `ClipON-Cluster-VSearch.sh`
+  - `ClipON-Cluster-VSearch-Consensus.py`
 - **ClipON-Classif**
   - `ClipON-Classif-NGS.sh`
   - `ClipON-Classif-Export.sh`
@@ -64,7 +67,7 @@ Para ejecutarlo se necesita un entorno GNU/Linux o WSL con `bash`. `conda` y [ma
 
 ### Ejecución interactiva
 
-`run_clipon_interactive.sh` es el corazón del proyecto y la forma recomendada de ejecutar ClipON. El asistente, totalmente de código abierto, guía paso a paso a cualquier persona con nociones básicas de la terminal: instala y configura los componentes necesarios, valida los archivos de entrada y permite reanudar ejecuciones previas. También genera automáticamente el manifest que requiere QIIME2. Si se dispone de un archivo de metadata, puede suministrarse de manera opcional con `--metadata <archivo>`. Al final ofrece editar parámetros avanzados de cada etapa. Incluye una única pregunta para elegir el método de clustering (NGS = NGSpeciesID o VS = VSearch); actualmente solo la rama NGS está operativa.
+`run_clipon_interactive.sh` es el corazón del proyecto y la forma recomendada de ejecutar ClipON. El asistente, totalmente de código abierto, guía paso a paso a cualquier persona con nociones básicas de la terminal: instala y configura los componentes necesarios, valida los archivos de entrada y permite reanudar ejecuciones previas. También genera automáticamente el manifest que requiere QIIME2. Si se dispone de un archivo de metadata, puede suministrarse de manera opcional con `--metadata <archivo>`. Al final ofrece editar parámetros avanzados de cada etapa. Incluye una única pregunta para elegir el método de clustering (NGS = NGSpeciesID o VS = VSearch); la ruta VS importa las lecturas filtradas, ejecuta VSEARCH desde QIIME2 y crea consensos compatibles con el paso de unificación estándar.
 
 ```bash
 ./scripts/run_clipon_interactive.sh
@@ -168,6 +171,18 @@ Active cada entorno solo la primera vez para instalarlo. El script `run_clipon_p
 ### Clustering con NGSpeciesID
 ```bash
 ./scripts/ClipON-Cluster-NGS-Clustering.sh <dir_entrada> <dir_salida>
+```
+
+### Clustering con VSEARCH (QIIME2)
+El script `ClipON-Cluster-VSearch.sh` parte de los FASTQ filtrados
+(`3_filtered`), genera automáticamente el manifest de importación para QIIME2,
+importa las lecturas y ejecuta `vsearch cluster-features-de-novo`.
+Los consensos se guardan en `4_clustered/<muestra>/consensus_reference_*.fasta`
+y en `4_clustered/consensos_todos.fasta`, listos para el paso estándar de
+unificación.
+```bash
+INPUT_DIR=/ruta/a/3_filtered OUTPUT_DIR=/ruta/a/4_clustered \
+  ./scripts/ClipON-Cluster-VSearch.sh
 ```
 
 ### Unificación de clusters
