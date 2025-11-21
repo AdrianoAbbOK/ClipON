@@ -64,7 +64,7 @@ Para ejecutarlo se necesita un entorno GNU/Linux o WSL con `bash`. `conda` y [ma
 
 ### Ejecución interactiva
 
-`run_clipon_interactive.sh` es el corazón del proyecto y la forma recomendada de ejecutar ClipON. El asistente, totalmente de código abierto, guía paso a paso a cualquier persona con nociones básicas de la terminal: instala y configura los componentes necesarios, valida los archivos de entrada y permite reanudar ejecuciones previas. También genera automáticamente el manifest que requiere QIIME2. Si se dispone de un archivo de metadata, puede suministrarse de manera opcional con `--metadata <archivo>`. Al final ofrece editar parámetros avanzados de cada etapa.
+`run_clipon_interactive.sh` es el corazón del proyecto y la forma recomendada de ejecutar ClipON. El asistente, totalmente de código abierto, guía paso a paso a cualquier persona con nociones básicas de la terminal: instala y configura los componentes necesarios, valida los archivos de entrada y permite reanudar ejecuciones previas. También genera automáticamente el manifest que requiere QIIME2. Si se dispone de un archivo de metadata, puede suministrarse de manera opcional con `--metadata <archivo>`. Al final ofrece editar parámetros avanzados de cada etapa. Incluye una única pregunta para elegir el método de clustering (NGS = NGSpeciesID o VS = VSearch); actualmente solo la rama NGS está operativa.
 
 ```bash
 ./scripts/run_clipon_interactive.sh

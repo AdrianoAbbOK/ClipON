@@ -215,6 +215,28 @@ while true; do
     break
 done
 
+echo "========================================================="
+echo "Selección de método de clustering"
+echo "========================================================="
+CLUSTER_METHOD="NGS"
+read -rp "¿Qué método desea usar? (NGS = NGSpeciesID / VS = VSearch) [NGS]: " method_choice
+case "${method_choice:-NGS}" in
+    [Nn][Gg][Ss])
+        CLUSTER_METHOD="NGS"
+        ;;
+    [Vv][Ss])
+        CLUSTER_METHOD="VS"
+        ;;
+    *)
+        echo "Opción no reconocida; usando NGS."
+        ;;
+esac
+if [ "$CLUSTER_METHOD" = "VS" ]; then
+    echo "El flujo de clustering con VSearch (VS) aún no está disponible en este asistente."
+    echo "Vuelva a ejecutarlo seleccionando NGS para seguir usando NGSpeciesID como hasta ahora."
+    exit 0
+fi
+
 read -rp "¿Desea usar todos los parámetros predeterminados optimizados para COI-FishMock? (s/n) " use_defaults
 if [[ $use_defaults =~ ^[Ss]$ ]]; then
     USE_DEFAULTS=1
@@ -368,6 +390,7 @@ echo "  Base de datos de taxonomía: $TAXONOMY_DB"
 if [ "$MODE" = "resume" ]; then
     echo "  Reanudación desde el paso: $RESUME_CODE"
 fi
+echo " *Método de clustering: $CLUSTER_METHOD (NGSpeciesID)"
 echo " *Recorte de secuencias"
 if [ "$SKIP_TRIM" -eq 1 ]; then
     echo "  Sin recorte"
