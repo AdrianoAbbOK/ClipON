@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # Wrapper para ejecutar la cadena completa de procesamiento de ClipON
-# Uso: ./run_clipon_pipeline.sh [--metadata <archivo>] <dir_fastq_entrada> <dir_trabajo>
+# Uso: ./run_clipon_pipeline.sh [--metadata <archivo>] [--cluster-method NGS|VS] \
+#   <dir_fastq_entrada> <dir_trabajo>
 # El directorio de trabajo contendrá subcarpetas para cada etapa
 
 # Para un gráfico avanzado de la calidad de lectura combine los TSV generados en cada etapa (ClipON-Prep-CollectReadStats.py):
@@ -19,10 +20,15 @@ cd "$ROOT_DIR"
 source "$(conda info --base)/etc/profile.d/conda.sh"
 
 METADATA_FILE=""
+CLUSTER_METHOD="${CLUSTER_METHOD:-NGS}"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --metadata)
             METADATA_FILE="${2:-}"
+            shift 2
+            ;;
+        --cluster-method)
+            CLUSTER_METHOD="${2:-NGS}"
             shift 2
             ;;
         *)
@@ -32,9 +38,22 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ "$#" -ne 2 ]; then
-    echo "Uso: $0 [--metadata <archivo>] <dir_fastq_entrada> <dir_trabajo>"
+    echo "Uso: $0 [--metadata <archivo>] [--cluster-method NGS|VS] <dir_fastq_entrada> <dir_trabajo>"
     exit 1
 fi
+
+case "${CLUSTER_METHOD^^}" in
+    NGS)
+        CLUSTER_METHOD="NGS"
+        ;;
+    VS)
+        CLUSTER_METHOD="VS"
+        ;;
+    *)
+        echo "Método de clustering no reconocido: $CLUSTER_METHOD (use NGS o VS)" >&2
+        exit 1
+        ;;
+esac
 
 INPUT_DIR="${1%/}"
 WORK_DIR="${2%/}"
@@ -44,6 +63,8 @@ SKIP_TRIM="${SKIP_TRIM:-0}"
 TRIM_FRONT="${TRIM_FRONT:-30}"
 TRIM_BACK="${TRIM_BACK:-30}"
 RESUME_STEP="${RESUME_STEP:-1}"
+VS_IDENTITY="${VS_IDENTITY:-0.98}"
+VS_THREADS="${VS_THREADS:-16}"
 
 # Definir subdirectorios
 PROCESSED_DIR="$WORK_DIR/1_processed"
@@ -54,6 +75,11 @@ UNIFIED_DIR="$WORK_DIR/5_unified"
 LOG_FILE="$FILTER_DIR/nanofilt.log"
 
 mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR"
+
+CLUSTER_ENV="clipon-ngs"
+if [ "$CLUSTER_METHOD" = "VS" ]; then
+    CLUSTER_ENV="clipon-qiime"
+fi
 
 run_step() {
     local step="$1"
@@ -119,8 +145,15 @@ fi
 
 echo "Gráfico de calidad vs longitud: $PLOT_FILE"
 
-run_step 4 clipon-ngs INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" bash scripts/ClipON-Cluster-NGS-Clustering.sh
-run_step 5 clipon-ngs BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/ClipON-Cluster-NGS-Unifying.sh
+if [ "$CLUSTER_METHOD" = "VS" ]; then
+    run_step 4 "$CLUSTER_ENV" INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
+        VS_IDENTITY="$VS_IDENTITY" VS_THREADS="$VS_THREADS" \
+        bash scripts/ClipON-Cluster-VSearch.sh
+else
+    run_step 4 "$CLUSTER_ENV" INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
+        bash scripts/ClipON-Cluster-NGS-Clustering.sh
+fi
+run_step 5 "$CLUSTER_ENV" BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" bash scripts/ClipON-Cluster-NGS-Unifying.sh
 
 if [ ! -s "$UNIFIED_DIR/consensos_todos.fasta" ]; then
     echo "No se creó el archivo maestro de consensos. Abortando pipeline."

@@ -231,10 +231,14 @@ case "${method_choice:-NGS}" in
         echo "Opción no reconocida; usando NGS."
         ;;
 esac
+
+CLUSTER_CODE="ClipON-Cluster-NGS-Clustering"
+UNIFY_CODE="ClipON-Cluster-NGS-Unifying"
 if [ "$CLUSTER_METHOD" = "VS" ]; then
-    echo "El flujo de clustering con VSearch (VS) aún no está disponible en este asistente."
-    echo "Vuelva a ejecutarlo seleccionando NGS para seguir usando NGSpeciesID como hasta ahora."
-    exit 0
+    CLUSTER_CODE="ClipON-Cluster-VSearch"
+    UNIFY_CODE="ClipON-Cluster-VSearch-Unifying"
+    STEP_CODES[3]="$CLUSTER_CODE"
+    STEP_CODES[4]="$UNIFY_CODE"
 fi
 
 read -rp "¿Desea usar todos los parámetros predeterminados optimizados para COI-FishMock? (s/n) " use_defaults
@@ -243,6 +247,11 @@ if [[ $use_defaults =~ ^[Ss]$ ]]; then
 else
     USE_DEFAULTS=0
 fi
+
+TRIM_EXTRA_ARGS="${TRIM_EXTRA_ARGS:-}"
+FILTER_EXTRA_ARGS="${FILTER_EXTRA_ARGS:-}"
+CLUSTER_EXTRA_ARGS="${CLUSTER_EXTRA_ARGS:-}"
+CLASSIFY_EXTRA_ARGS="${CLASSIFY_EXTRA_ARGS:-}"
 
 if [ "$USE_DEFAULTS" -eq 0 ]; then
     echo "========================================================="
@@ -287,26 +296,39 @@ if [ "$USE_DEFAULTS" -eq 0 ]; then
     fi
 
     if [ "${RESUME_STEP:-1}" -le 4 ]; then
-        print_section "Paso 4 – ClipON-Cluster-NGS-Clustering"
-        DEFAULT_M_LEN=700
-        DEFAULT_SUPPORT=150
-        DEFAULT_THREADS=16
-        DEFAULT_QUAL=10
-        DEFAULT_RC_ID=0.98
-        DEFAULT_ABUND_RATIO=0.01
-        prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
-        prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
-        prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
-        prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
-        prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
-        prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
+        if [ "$CLUSTER_METHOD" = "VS" ]; then
+            print_section "Paso 4 – ClipON-Cluster-VSearch"
+            DEFAULT_VS_IDENTITY=0.98
+            DEFAULT_VS_THREADS=16
+            prompt_param VS_IDENTITY "  Identidad de clustering (--p-perc-identity)" "$DEFAULT_VS_IDENTITY"
+            prompt_param VS_THREADS "  Número de hilos (--p-threads)" "$DEFAULT_VS_THREADS"
+        else
+            print_section "Paso 4 – ClipON-Cluster-NGS-Clustering"
+            DEFAULT_M_LEN=700
+            DEFAULT_SUPPORT=150
+            DEFAULT_THREADS=16
+            DEFAULT_QUAL=10
+            DEFAULT_RC_ID=0.98
+            DEFAULT_ABUND_RATIO=0.01
+            prompt_param M_LEN "  Longitud esperada del consenso (--m)" "$DEFAULT_M_LEN"
+            prompt_param SUPPORT "  Número mínimo de lecturas de soporte (--s)" "$DEFAULT_SUPPORT"
+            prompt_param THREADS "  Número de hilos (--t)" "$DEFAULT_THREADS"
+            prompt_param QUAL "  Calidad mínima (--q)" "$DEFAULT_QUAL"
+            prompt_param RC_ID "  Umbral de identidad de RC (--rc_identity_threshold)" "$DEFAULT_RC_ID"
+            prompt_param ABUND_RATIO "  Proporción mínima de abundancia (--abundance_ratio)" "$DEFAULT_ABUND_RATIO"
+        fi
     else
-        M_LEN=700
-        SUPPORT=150
-        THREADS=16
-        QUAL=10
-        RC_ID=0.98
-        ABUND_RATIO=0.01
+        if [ "$CLUSTER_METHOD" = "VS" ]; then
+            VS_IDENTITY=0.98
+            VS_THREADS=16
+        else
+            M_LEN=700
+            SUPPORT=150
+            THREADS=16
+            QUAL=10
+            RC_ID=0.98
+            ABUND_RATIO=0.01
+        fi
     fi
 
     if [ "${RESUME_STEP:-1}" -le 6 ]; then
@@ -368,6 +390,8 @@ else
     QUAL=10
     RC_ID=0.98
     ABUND_RATIO=0.01
+    VS_IDENTITY=0.98
+    VS_THREADS=16
     NUM_THREADS=5
     PERC_ID=0.8
     QUERY_COV=0.8
@@ -378,6 +402,8 @@ else
     CLUSTER_EXTRA_ARGS=""
     CLASSIFY_EXTRA_ARGS=""
 fi
+
+resolve_resume
 
 echo "========================================================="
 echo "Resumen de configuración"
@@ -390,7 +416,11 @@ echo "  Base de datos de taxonomía: $TAXONOMY_DB"
 if [ "$MODE" = "resume" ]; then
     echo "  Reanudación desde el paso: $RESUME_CODE"
 fi
-echo " *Método de clustering: $CLUSTER_METHOD (NGSpeciesID)"
+if [ "$CLUSTER_METHOD" = "VS" ]; then
+    echo " *Método de clustering: VS (VSEARCH)"
+else
+    echo " *Método de clustering: NGS (NGSpeciesID)"
+fi
 echo " *Recorte de secuencias"
 if [ "$SKIP_TRIM" -eq 1 ]; then
     echo "  Sin recorte"
@@ -398,13 +428,19 @@ else
     echo "  Recorte en -$TRIM_FRONT y +$TRIM_BACK"
 fi
 echo " *Filtro NanoFilt: longitudes $MIN_LEN-$MAX_LEN, calidad mínima $MIN_QUAL"
-echo " *NGSpeciesID:"
-echo "    Longitud esperada del consenso: $M_LEN"
-echo "    Lecturas de soporte: $SUPPORT"
-echo "    Hilos: $THREADS"
-echo "    Calidad mínima: $QUAL"
-echo "    RC identidad: $RC_ID"
-echo "    Proporción mínima de abundancia: $ABUND_RATIO"
+if [ "$CLUSTER_METHOD" = "VS" ]; then
+    echo " *VSEARCH:"
+    echo "    Identidad de clustering: $VS_IDENTITY"
+    echo "    Hilos: $VS_THREADS"
+else
+    echo " *NGSpeciesID:"
+    echo "    Longitud esperada del consenso: $M_LEN"
+    echo "    Lecturas de soporte: $SUPPORT"
+    echo "    Hilos: $THREADS"
+    echo "    Calidad mínima: $QUAL"
+    echo "    RC identidad: $RC_ID"
+    echo "    Proporción mínima de abundancia: $ABUND_RATIO"
+fi
 echo " *Clasificación BLAST:"
 echo "    Número de hilos: $NUM_THREADS"
 echo "    Identidad mínima: $PERC_ID"
@@ -436,11 +472,16 @@ CLUSTER_DIR="$WORK_DIR/4_clustered"
 UNIFIED_DIR="$WORK_DIR/5_unified"
 LOG_FILE="$FILTER_DIR/nanofilt.log"
 
+CLUSTER_ENV="clipon-ngs"
+CLUSTER_HEADER="Paso 4 – ClipON-Cluster-NGS-Clustering"
+UNIFY_HEADER="Paso 5 – ClipON-Cluster-NGS-Unifying"
+if [ "$CLUSTER_METHOD" = "VS" ]; then
+    CLUSTER_ENV="clipon-qiime"
+    CLUSTER_HEADER="Paso 4 – ClipON-Cluster-VSearch"
+    UNIFY_HEADER="Paso 5 – ClipON-Cluster-VSearch-Unifying"
+fi
+
 # Variables para parámetros avanzados opcionales
-TRIM_EXTRA_ARGS=""
-FILTER_EXTRA_ARGS=""
-CLUSTER_EXTRA_ARGS=""
-CLASSIFY_EXTRA_ARGS=""
 TAX_PLOT_FILE="N/A"
 
 mkdir -p "$PROCESSED_DIR" "$TRIM_DIR" "$FILTER_DIR" "$CLUSTER_DIR" "$UNIFIED_DIR"
@@ -601,13 +642,20 @@ else
     echo "Omitiendo resumen de lecturas y generación del gráfico (RESUME_STEP=${RESUME_STEP:-1} > 3)."
 fi
 
-run_step 4 ClipON-Cluster-NGS-Clustering clipon-ngs "Paso 4 – ClipON-Cluster-NGS-Clustering" "$CLUSTER_EXTRA_ARGS" \
-    M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
-    QUAL="$QUAL" RC_ID="$RC_ID" ABUND_RATIO="$ABUND_RATIO" \
-    INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
-    bash scripts/ClipON-Cluster-NGS-Clustering.sh
+if [ "$CLUSTER_METHOD" = "VS" ]; then
+    run_step 4 "$CLUSTER_CODE" "$CLUSTER_ENV" "$CLUSTER_HEADER" "$CLUSTER_EXTRA_ARGS" \
+        VS_IDENTITY="$VS_IDENTITY" VS_THREADS="$VS_THREADS" \
+        INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
+        bash scripts/ClipON-Cluster-VSearch.sh
+else
+    run_step 4 "$CLUSTER_CODE" "$CLUSTER_ENV" "$CLUSTER_HEADER" "$CLUSTER_EXTRA_ARGS" \
+        M_LEN="$M_LEN" SUPPORT="$SUPPORT" THREADS="$THREADS" \
+        QUAL="$QUAL" RC_ID="$RC_ID" ABUND_RATIO="$ABUND_RATIO" \
+        INPUT_DIR="$FILTER_DIR" OUTPUT_DIR="$CLUSTER_DIR" \
+        bash scripts/ClipON-Cluster-NGS-Clustering.sh
+fi
 
-run_step 5 ClipON-Cluster-NGS-Unifying clipon-ngs "Paso 5 – ClipON-Cluster-NGS-Unifying" "" \
+run_step 5 "$UNIFY_CODE" "$CLUSTER_ENV" "$UNIFY_HEADER" "" \
     BASE_DIR="$CLUSTER_DIR" OUTPUT_DIR="$UNIFIED_DIR" \
     bash scripts/ClipON-Cluster-NGS-Unifying.sh
 
