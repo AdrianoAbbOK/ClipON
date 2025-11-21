@@ -41,6 +41,8 @@ find "$output_dir" -mindepth 1 -maxdepth 1 -type d ! -name export -exec rm -rf {
 
 # Generar manifiesto de importación
 bash "$SCRIPT_DIR/generate_manifest.sh" --filtered "$input_dir" >"$manifest_path"
+# Normalizar saltos de línea para evitar errores de importación en QIIME2
+sed -i 's/\r$//' "$manifest_path"
 
 sequences_qza="$output_dir/sequences.qza"
 demux_qzv="$output_dir/demux_summary.qzv"
