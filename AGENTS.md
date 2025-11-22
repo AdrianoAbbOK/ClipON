@@ -14,5 +14,15 @@ Este repositorio contiene el pipeline **ClipON** para el análisis de metabarcod
 - Actualizar `README.md` y los archivos en `docs/` cuando se agreguen nuevas funciones o se cambie el comportamiento de los scripts.
 - Mantener este archivo actualizado si cambian las reglas de estilo o los procedimientos de prueba.
 
+## Respuestas de los agentes
+- Al responder a los usuarios, explicar siempre qué sucede, qué se cambió y por qué se hizo ese cambio.
+
 ## Commits
 - Usar mensajes de commit breves y descriptivos (preferentemente en inglés).
+
+## Notas recientes de depuración
+- El archivo `scripts/ClipON-Cluster-VSearch-Consensus.py` fallaba al leer
+  tablas BIOM TSV cuando los conteos venían como strings flotantes (p. ej.,
+  "1.0"), lanzando `ValueError` al intentar `int('1.0')`. Convierte los
+  conteos con `float` y redondea a entero antes de castear para evitar este
+  problema.

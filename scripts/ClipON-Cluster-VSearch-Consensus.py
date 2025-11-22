@@ -69,7 +69,13 @@ def read_feature_table(
                     counts[feature_id][sample] = 0
                     continue
 
-                numeric_value = int(float(value))
+                    codex/fix-valueerror-in-read_feature_table-00kx2w
+                # Algunos exportes de BIOM representan los conteos como "1.0" en lugar
+                # de enteros puros. Convertimos primero a float y luego redondeamos a
+                # entero para evitar errores de conversión (p. ej., ValueError por
+                # strings como "1.0" o "2.000").
+                numeric_value = int(round(float(value)))
+
                 counts[feature_id][sample] = numeric_value
     return samples, counts
 
