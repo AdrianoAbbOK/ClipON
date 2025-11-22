@@ -63,10 +63,18 @@ def read_feature_table(
                 continue
             fields = line.split("\t")
             feature_id, raw_counts = fields[0], fields[1:]
-            counts[feature_id] = {
-                sample: int(value) if value else 0
-                for sample, value in zip(samples, raw_counts)
-            }
+            counts[feature_id] = {}
+            for sample, value in zip(samples, raw_counts):
+                if not value:
+                    counts[feature_id][sample] = 0
+                    continue
+
+                # Algunos exportes de BIOM representan los conteos como "1.0" en lugar
+                # de enteros puros. Convertimos primero a float y luego redondeamos a
+                # entero para evitar errores de conversión (p. ej., ValueError por
+                # strings como "1.0" o "2.000").
+                numeric_value = int(round(float(value)))
+                counts[feature_id][sample] = numeric_value
     return samples, counts
 
 
