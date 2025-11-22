@@ -68,8 +68,6 @@ def read_feature_table(
                 if not value:
                     counts[feature_id][sample] = 0
                     continue
-
-                    codex/fix-valueerror-in-read_feature_table-00kx2w
                 # Algunos exportes de BIOM representan los conteos como "1.0" en lugar
                 # de enteros puros. Convertimos primero a float y luego redondeamos a
                 # entero para evitar errores de conversión (p. ej., ValueError por
