@@ -124,6 +124,18 @@ python scripts/ClipON-Classif-PlotTaxonBar.py taxonomy_with_sample.tsv plot.png 
     --metadata fastq_metadata.tsv --code-samples --code-taxa
 ```
 
+## Cómo citar
+
+Si ClipON resulta útil en su trabajo, cite el proyecto utilizando los metadatos
+incluidos en `CITATION.cff`. GitHub mostrará el formato sugerido en la página
+principal del repositorio.
+
+## Notas de release
+
+El archivo `docs/release_notes.md` resume los puntos destacados del próximo
+release, los pasos recomendados para crear el artefacto y los temas sugeridos
+para la descripción pública.
+
 ## Entornos Conda
 
 El repositorio incluye archivos de entorno en `envs/` y un asistente para instalarlos.

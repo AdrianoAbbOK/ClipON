@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use ClipON in your research, please cite it using the metadata below."
+title: "ClipON: reproducible pipeline for metabarcoding of Nanopore eDNA (COI marker)"
+authors:
+  - family-names: "Abb"
+    given-names: "Adriano"
+keywords:
+  - metabarcoding
+  - nanopore
+  - qiime2
+  - edna
+  - pipeline
+repository-code: https://github.com/AdrianoAbbOK/ClipON
+license: MIT
+version: "latest"
